@@ -1,0 +1,30 @@
+org_id = "0123456789012"
+billing_account_id = "000000-000000-000000"
+gcs_region = "us-east1"
+parent_folder_name = "bootstrap"
+lz_folder_name = "lz"
+seed_project_id = "lz-seed"
+tf_state_bucket_name = "lz-seed-tf-state"
+enabled_apis = [ 
+    "cloudapis.googleapis.compute",
+    "cloudasset.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "containerregistry.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "serviceusage.googleapis.com",
+    "storage-api.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com"
+]
+tf_iam_roles = [
+    "roles/resourcemanager.folderAdmin",
+    "roles/resourcemanager.projectCreator",
+    "roles/billing.user",
+    "roles/compute.admin",
+    "roles/storage.admin",
+    "roles/serviceusage.serviceUsageAdmin",
+    ""
+]
