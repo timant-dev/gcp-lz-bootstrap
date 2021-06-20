@@ -82,7 +82,7 @@ resource "google_service_account_iam_binding" "cb-impersonate-tf-sa" {
   role               = "roles/iam.serviceAccountTokenCreator"
 }
 
-esource "google_storage_bucket_iam_member" "tf-sa-gcs-admin" {
+resource "google_storage_bucket_iam_member" "cb-sa-gcs-admin" {
   bucket = google_storage_bucket.tf-seed-state-bucket.id
   member = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   role   = "roles/storage.admin"
