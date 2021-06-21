@@ -7,7 +7,7 @@ seed_project_id = "lz-seed"
 tf_state_bucket_name = "lz-seed-tf-state"
 tf_sa_name = "terraform-bootstrap"
 enabled_apis = [ 
-    "cloudapis.googleapis.compute",
+    "cloudapis.googleapis.com",
     "cloudasset.googleapis.com",
     "cloudbilling.googleapis.com",
     "cloudbuild.googleapis.com",
