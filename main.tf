@@ -5,7 +5,7 @@ resource "random_id" "rand_id" {
 
 locals {
   unique_bucket_name = "${var.tf_state_bucket_name}-${random_id.rand_id.hex}"
-  unique_project_id  = "${var.project_id}-${random_id.rand_id.hex}"
+  unique_project_id  = "${var.seed_project_id}-${random_id.rand_id.hex}"
 }
 
 resource "google_folder" "bootstrap" {
