@@ -41,6 +41,11 @@ variable "enabled_apis" {
   description = "List of APIs to enable in seed project"
 }
 
+variable "tf_iam_org_roles" {
+  type        = list(string)
+  description = "List of org level IAM roles to assign to Terraform service account"
+}
+
 variable "tf_iam_folder_roles" {
   type        = list(string)
   description = "List of folder level IAM roles to assign to Terraform service account"

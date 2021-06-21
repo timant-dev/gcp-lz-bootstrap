@@ -20,10 +20,12 @@ enabled_apis = [
     "storage-component.googleapis.com",
     "storage.googleapis.com"
 ]
+tf_iam_org_roles = [
+    "roles/billing.user"
+]
 tf_iam_folder_roles = [
     "roles/resourcemanager.folderAdmin",
     "roles/resourcemanager.projectCreator",
-    "roles/billing.user",
     "roles/compute.admin",
     "roles/serviceusage.serviceUsageAdmin"
 ]
