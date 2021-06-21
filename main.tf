@@ -68,22 +68,34 @@ resource "google_folder_iam_member" "tf-sa-folder-iam-roles" {
   folder   = google_folder.lz.folder_id
   member   = "serviceAccount:${google_service_account.tf-sa.email}"
   role     = each.value
+  depends_on = [
+    google_service_account.tf-sa
+  ]
 }
 
 resource "google_storage_bucket_iam_member" "tf-sa-gcs-admin" {
   bucket = google_storage_bucket.tf-seed-state-bucket.id
   member = "serviceAccount:${google_service_account.tf-sa.email}"
   role   = "roles/storage.admin"
+  depends_on = [
+    google_service_account.tf-sa
+  ]
 }
 
 resource "google_service_account_iam_binding" "cb-impersonate-tf-sa" {
   service_account_id = google_service_account.tf-sa.email
   members            = ["serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"]
   role               = "roles/iam.serviceAccountTokenCreator"
+  depends_on = [
+    google_folder_iam_member.tf-sa-folder-iam-roles
+  ]
 }
 
 resource "google_storage_bucket_iam_member" "cb-sa-gcs-admin" {
   bucket = google_storage_bucket.tf-seed-state-bucket.id
   member = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   role   = "roles/storage.admin"
+  depends_on = [
+    google_storage_bucket.tf-seed-state-bucket
+  ]
 }
