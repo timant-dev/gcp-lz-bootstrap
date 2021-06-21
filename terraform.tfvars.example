@@ -1,5 +1,5 @@
-org_id = "0123456789012"
-billing_account_id = "000000-000000-000000"
+org_id = "XXXXXX"
+billing_account_id = "ZZZZZZ"
 gcs_region = "us-east1"
 parent_folder_name = "bootstrap"
 lz_folder_name = "lz"
