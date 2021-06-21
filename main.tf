@@ -57,7 +57,7 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
 resource "google_service_account" "tf-sa" {
   account_id   = var.tf_sa_name
   display_name = var.tf_sa_name
-  project      = google_project.seed.id
+  project      = google_project.seed.project_id
   depends_on = [
     google_storage_bucket.tf-seed-state-bucket
   ]
