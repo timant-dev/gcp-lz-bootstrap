@@ -31,14 +31,14 @@ variable "tf_state_bucket_name" {
   description = "GCS bucket name for Terraform state"
 }
 
-variable "enabled_apis" {
-  type        = list(string)
-  description = "List of APIs to enable in seed project"
-}
-
 variable "tf_sa_name" {
   type        = string
   description = "Service account name for LZ foundation provisioning"
+}
+
+variable "enabled_apis" {
+  type        = list(string)
+  description = "List of APIs to enable in seed project"
 }
 
 variable "tf_iam_folder_roles" {

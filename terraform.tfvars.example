@@ -5,6 +5,7 @@ parent_folder_name = "bootstrap"
 lz_folder_name = "lz"
 seed_project_id = "lz-seed"
 tf_state_bucket_name = "lz-seed-tf-state"
+tf_sa_name = "terraform-bootstrap"
 enabled_apis = [ 
     "cloudapis.googleapis.compute",
     "cloudasset.googleapis.com",
