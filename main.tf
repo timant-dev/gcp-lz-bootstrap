@@ -22,7 +22,7 @@ resource "google_project" "seed" {
   name                = local.unique_project_id
   project_id          = local.unique_project_id
   auto_create_network = false
-  billing_account     = var.project_billing_account
+  billing_account     = var.billing_account_id
   folder_id           = google_folder.bootstrap.folder_id
   skip_delete         = false
 }
@@ -64,7 +64,7 @@ resource "google_service_account" "tf-sa" {
 }
 
 resource "google_folder_iam_member" "tf-sa-folder-iam-roles" {
-  for_each = var.tf_iam_folder_roles ? toset(var.tf_iam_folder_roles) : []
+  for_each = length(var.tf_iam_folder_roles) == 0 ? [] : toset(var.tf_iam_folder_roles)
   folder   = google_folder.lz.folder_id
   member   = "serviceAccount:${google_service_account.tf-sa.email}"
   role     = each.value
