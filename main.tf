@@ -19,7 +19,7 @@ resource "google_folder" "lz" {
 }
 
 resource "google_project" "seed" {
-  name                = local.unique_project_id
+  name                = var.seed_project_id
   project_id          = local.unique_project_id
   auto_create_network = false
   billing_account     = var.billing_account_id
