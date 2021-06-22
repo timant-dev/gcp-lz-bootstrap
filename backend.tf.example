@@ -3,6 +3,5 @@ terraform {
   backend "gcs" {
     bucket = "BUCKET_NAME_PLACEHOLDER"
     prefix = "terraform/bootstrap/state"
-    # impersonate_service_account = "terraform@dev-timant-terraform-admin.iam.gserviceaccount.com"
   }
 }
