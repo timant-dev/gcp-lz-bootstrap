@@ -1,6 +1,5 @@
 resource "random_id" "rand_id" {
   byte_length = 4
-  #   prefix      = "${var.project_base_name}-"
 }
 
 locals {
@@ -46,9 +45,6 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
   versioning {
     enabled = true
   }
-  #   encryption {
-  #
-  #   }
   depends_on = [
     google_project_service.enabled-apis
   ]
