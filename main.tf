@@ -139,7 +139,7 @@ resource "google_service_account_iam_binding" "cb-impersonate-tf-sa" {
   members            = ["serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"]
   role               = "roles/iam.serviceAccountTokenCreator"
   depends_on = [
-    google_folder_iam_member.tf-sa-folder-iam-roles
+    google_folder_iam_binding.tf-sa-folder-iam-roles
   ]
 }
 
@@ -224,12 +224,12 @@ resource "google_cloudbuild_trigger" "populate-policy-lib" {
   }
   substitutions = {
     _TF_SA              = "${google_service_account.tf-sa.email}"
-    _POLICY_LIB_PROJECT = "${google_project.registry.project_name}"
+    _POLICY_LIB_PROJECT = "${google_project.registry.project_id}"
     _POLICY_LIB_REPO    = "${google_sourcerepo_repository.org-phase-repo.id}"
   }
   filename = var.policy_lib_cb_job_config
   depends_on = [
-    google_sourcerepo_repository.org_phase_repo
+    google_sourcerepo_repository.org-phase-repo
   ]
 }
 
