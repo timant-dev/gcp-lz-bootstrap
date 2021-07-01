@@ -21,6 +21,11 @@ variable "artefacts_folder_name" {
   type = string
 }
 
+variable "root_envs_folder_name" {
+  type        = string
+  description = "Root environment folder for production, non-production and development workload environments"
+}
+
 variable "seed_project_id" {
   type        = string
   description = "Project ID for seed project"

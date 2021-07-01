@@ -19,6 +19,11 @@ resource "google_folder" "artefacts" {
   parent       = "organizations/${var.org_id}"
 }
 
+resource "google_folder" "root-envs" {
+  display_name = var.root_envs_folder_name
+  parent       = "organizations/${var.org_id}"
+}
+
 resource "google_project" "seed" {
   name                = var.seed_project_id
   project_id          = local.seed_project_unique_id
@@ -108,7 +113,7 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
 
 resource "google_folder_iam_binding" "tf-sa-folder-iam-roles" {
   for_each = length(var.tf_iam_folder_roles) == 0 ? [] : toset(var.tf_iam_folder_roles)
-  folder   = google_folder.lz.folder_id
+  folder   = google_folder.root-envs.folder_id
   members = [
     "serviceAccount:${google_service_account.tf-sa.email}"
   ]
@@ -186,9 +191,10 @@ resource "google_sourcerepo_repository" "policy-lib-repo" {
 # Grant read/write access to the policy lib repo to Terraform service account
 
 resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write" {
-  project = google_project.registry.project_id
-  members = ["serviceAccount:${google_service_account.tf-sa.email}"]
-  role    = "roles/source.writer"
+  project    = google_project.registry.project_id
+  repository = google_sourcerepo_repository.policy-lib-repo.name
+  members    = ["serviceAccount:${google_service_account.tf-sa.email}"]
+  role       = "roles/source.writer"
   depends_on = [
     google_sourcerepo_repository.policy-lib-repo
   ]
