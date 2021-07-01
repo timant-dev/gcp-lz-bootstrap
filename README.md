@@ -59,7 +59,7 @@ https://ssh.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.
 
 Alternatively, ensure you have signed in to the GCP Console beforehand as the identity you wish to use to run the bootstrap process and then you can click the button below to launch Cloud Shell and clone the `main` branch of this repo into your session  :
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.com/timantrobus/gcp-lz-bootstrap&cloudshell_git_branch=main)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.com/timantrobus/gcp-lz-bootstrap&cloudshell_git_branch=main&cloudshell_tutorial=bootstrap-tutorial.md)
 
 __3. Terraform Variables Initialisation__
 
