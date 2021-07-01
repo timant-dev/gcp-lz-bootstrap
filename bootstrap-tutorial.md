@@ -8,7 +8,7 @@ Run the following steps to deploy the landing zone bootstrap infrastructure :
 - Click the button to paste this to the Cloud Shell command line and add your region e.g. `us-east1`
 
 ```sh
-gcloud configure set compute/region 
+gcloud config set compute/region 
 ```
 
 #### 2. Initialise Terraform Variables
