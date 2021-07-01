@@ -25,7 +25,8 @@ enabled_apis = [
     "storage.googleapis.com"
 ]
 registry_enabled_apis = [
-    "artifactregistry.googleapis.com"
+    "artifactregistry.googleapis.com",
+    "sourcerepo.googleapis.com",
 ]
 tf_iam_org_roles = [
     "roles/billing.user"

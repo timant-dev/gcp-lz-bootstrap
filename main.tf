@@ -222,6 +222,7 @@ resource "google_cloudbuild_trigger" "populate-policy-lib" {
     repo_name   = google_sourcerepo_repository.org-phase-repo.name
     branch_name = var.org_repo_policy_lib_trigger_branch
   }
+  project = google_project.seed.project_id
   substitutions = {
     _TF_SA              = "${google_service_account.tf-sa.email}"
     _POLICY_LIB_PROJECT = "${google_project.registry.project_id}"
@@ -240,6 +241,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
     repo_name   = google_sourcerepo_repository.org-phase-repo.name
     branch_name = var.org_repo_deploy_org_trigger_branch
   }
+  project = google_project.seed.project_id
   substitutions = {
     _TF_SA              = "${google_service_account.tf-sa.email}"
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
