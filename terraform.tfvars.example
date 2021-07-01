@@ -1,6 +1,6 @@
 org_id = "XXXXXX"
 billing_account_id = "ZZZZZZ"
-gcs_region = "us-east1"
+gcs_region = "YYYYYY"
 parent_folder_name = "bootstrap"
 artefacts_folder_name = "artefacts"
 seed_project_id = "seed"

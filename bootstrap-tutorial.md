@@ -1,27 +1,60 @@
-#### Landing Zone Bootstrap Steps
+### Landing Zone Bootstrap Steps
 
-__1. Terraform Variables Initialisation__
+Run the following steps to deploy the landing zone bootstrap infrastructure :
 
-- Run the `init-tfvars.sh` script to initialise a `terraform.tfvars` variable values file from the `terraform.tfvars.example` template
-- The script will populate the Organisation ID and Billing Account ID using `gcloud` commands and interpolate those values into the template output
+#### 1. Initialise Terraform Variables
 
-__2. Executing Terraform Configuration__
+- This step inserts the Organisation ID, Billing Account ID and default region into the `terraform.tfvars.example` template. Run this script :
 
-- Once the `terraform.tfvars` file has been generated from the template, the usual Terraform steps can be executed as followed :
-   - `terraform init`
-   - `terraform workspace new bootstrap` - Creates a workspace named `bootstrap`
-   - `terraform plan`
-   - `terraform apply` 
+```sh
+./init-tfvars.sh
+```
 
-__3. Migrate Local Terraform State to Remote Backend__
+#### 2. Initialise Terraform
 
-After the Terraform bootstrap provisioning is complete, the Terraform state will reside locally in the home directory of the Cloud Shell VM. 
+- Once the `terraform.tfvars` file has been generated from the template, initialise Terraform :
 
-Therefore, the next step is to migrate that local state to the newly created GCS bucket in the `lz-seed` project.
+```sh
+terraform init
+```
 
-To do this, first run the `init-backend.sh` script that will extract the GCS bucket name from the Terraform state outputs and interpolate it into the `backend.tf.example` template to produce a `backend.tf` configuration file.
+#### 3. Create a new Terraform workspace
 
-Next run the following Terraform command to migrate the local state to the new backend :
+- Create a new workspace named __bootstrap__ :
+
+```
+terraform workspace new bootstrap
+```
+
+#### 4. Generate a Terraform plan
+
+- Review the plan output before deploying : 
+
+```
+terraform plan
+```
+
+#### 5. Deploy the bootstrap resources
+
+- Deploy the Bootstrap infrastructure :
+
+```
+terraform apply
+```
+
+#### 6. Update Terraform GCS backend configuration
+
+- This step updates the placeholder value in the Terraform backend configuration with the GCS bucket name just created by the deployment
+- Run the following script :
+
+```
+./init-backend.sh
+```
+
+#### 7. Migrate Terraform state to GCS backend
+
+- The Terraform deployment created a __state__ file locally on the Cloud Shell VM
+- This step will migrate that local state to the newly created GCS bucket in the seed project :
 
 ```
 terraform init -migrate-state
