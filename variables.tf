@@ -21,10 +21,6 @@ variable "artefacts_folder_name" {
   type = string
 }
 
-variable "lz_folder_name" {
-  type = string
-}
-
 variable "seed_project_id" {
   type        = string
   description = "Project ID for seed project"
