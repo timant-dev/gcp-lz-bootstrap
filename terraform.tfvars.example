@@ -6,6 +6,7 @@ artefacts_folder_name = "artefacts"
 seed_project_id = "seed"
 artefact_project_id = "artefact-registry"
 tf_state_bucket_name = "lz-seed-tf-state"
+cb_artefacts_bucket_name = "lz-cloud-build-artefacts"
 tf_sa_name = "terraform-core"
 enabled_apis = [ 
     "cloudapis.googleapis.com",

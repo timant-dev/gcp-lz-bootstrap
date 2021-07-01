@@ -63,7 +63,7 @@ Alternatively, ensure you have signed in to the GCP Console beforehand as the id
 
 __3. Terraform Variables Initialisation__
 
-- Having started an authenticated Cloud Shell session using the Open in Cloud Shell URL, the user then needs to run the `init-tfvars.sh` script to initialise a `terraform.tfvar` variable values file from the `terraform.tfvars.example` template
+- Having started an authenticated Cloud Shell session using the Open in Cloud Shell URL, the user then needs to run the `init-tfvars.sh` script to initialise a `terraform.tfvars` variable values file from the `terraform.tfvars.example` template
 - The script will populate the Organisation ID and Billing Account ID using `gcloud` commands and interpolate those values into the template output
 
 __4. Executing Terraform Configuration__
