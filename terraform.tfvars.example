@@ -19,6 +19,7 @@ enabled_apis = [
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "serviceusage.googleapis.com",
+    "sourcerepo.googleapis.com",
     "storage-api.googleapis.com",
     "storage-component.googleapis.com",
     "storage.googleapis.com"

@@ -79,7 +79,7 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
 
 resource "google_storage_bucket" "cloud-build-logs-artefacts" {
   project                     = google_project.seed.project_id
-  name                        = local.tf_state_bucket_name
+  name                        = local.cb_artefacts_bucket_name
   location                    = var.gcs_region
   uniform_bucket_level_access = true
   versioning {
