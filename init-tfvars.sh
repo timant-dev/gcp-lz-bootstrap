@@ -3,7 +3,7 @@ set -e
 echo "Interpolating organisation ID, billing account ID and default region into Terraform variables template..."
 export ORG_ID=$(gcloud organizations list --format='value(ID)')
 export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
-export REGION=$(gcloud config get-value compute/region)
+export REGION=${GCS_REGION}
 if [[ (-z "${ORG_ID}") || (-z "${BILL_ID}") || (-z "${REGION}") ]]
 then
   echo "ERROR : Organisation ID, Billing Account ID or default region not populated"
