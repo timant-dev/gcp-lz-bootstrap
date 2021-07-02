@@ -195,8 +195,11 @@ resource "google_sourcerepo_repository" "policy-lib-repo" {
 resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write" {
   project    = google_project.registry.project_id
   repository = google_sourcerepo_repository.policy-lib-repo.name
-  members    = ["serviceAccount:${google_service_account.tf-sa.email}"]
-  role       = "roles/source.writer"
+  members = [
+    "serviceAccount:${google_service_account.tf-sa.email}",
+    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  ]
+  role = "roles/source.writer"
   depends_on = [
     google_sourcerepo_repository.policy-lib-repo
   ]
