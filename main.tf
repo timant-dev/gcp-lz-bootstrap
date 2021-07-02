@@ -68,6 +68,7 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
   project                     = google_project.seed.project_id
   name                        = local.tf_state_bucket_name
   location                    = var.gcs_region
+  force_destroy               = true
   uniform_bucket_level_access = true
   versioning {
     enabled = true
@@ -81,6 +82,7 @@ resource "google_storage_bucket" "cloud-build-logs-artefacts" {
   project                     = google_project.seed.project_id
   name                        = local.cb_artefacts_bucket_name
   location                    = var.gcs_region
+  force_destroy               = true
   uniform_bucket_level_access = true
   versioning {
     enabled = true
@@ -218,6 +220,7 @@ resource "google_sourcerepo_repository" "org-phase-repo" {
 # can be executed manually in the GCP Console
 
 resource "google_cloudbuild_trigger" "populate-policy-lib" {
+  name = "populate-policy-lib-repo"
   trigger_template {
     repo_name   = google_sourcerepo_repository.org-phase-repo.name
     branch_name = var.org_repo_policy_lib_trigger_branch
@@ -237,6 +240,7 @@ resource "google_cloudbuild_trigger" "populate-policy-lib" {
 # Create Cloud Build trigger to run the core landing zone ORG deployment phase
 
 resource "google_cloudbuild_trigger" "plan-org-phase" {
+  name = "lz-org-terraform-plan"
   trigger_template {
     repo_name   = google_sourcerepo_repository.org-phase-repo.name
     branch_name = var.org_repo_deploy_org_trigger_branch
