@@ -68,3 +68,25 @@ terraform apply
 ```sh
 terraform init -migrate-state
 ```
+
+#### 9. Add a mirrored GitHub repository to provide Cloud Build CI pipeline configuration (MANUAL STEP IN GCP CONSOLE)
+
+- This step comprises creating GCP Cloud Source Repository that __mirrors__ a private Github repository
+- Ensure you have a Github machine user account permissioned for access to the private repository
+- Sign out of any Github sessions beforehand
+- Follow instructions on how to mirror your Github repo here : <https://cloud.google.com/source-repositories/docs/mirroring-a-github-repository#create_a_mirrored_repository> and then return to this tutorial once completed
+
+
+#### 10. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
+
+- Run the following commands passing in a command line variable to enable provisioning of the Cloud Build CI job triggers :
+
+```sh
+terraform plan -var="enable_cb_triggers=true"
+```
+
+- Confirm the plan output and then apply the changes :
+
+```sh
+terraform apply -var="enable_cb_triggers=true"
+```

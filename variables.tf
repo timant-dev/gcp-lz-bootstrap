@@ -92,6 +92,12 @@ variable "org_repo_policy_lib_trigger_branch" {
   default     = "populate-policy-lib-placeholder"
 }
 
+variable "enable_cb_triggers" {
+  type        = bool
+  description = "Toggle to enable the provisioning of Cloud Build triggers"
+  default     = false
+}
+
 variable "policy_lib_cb_job_config" {
   type        = string
   description = "Cloud Build config file name for policy-lib job"

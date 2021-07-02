@@ -202,47 +202,37 @@ resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write"
   ]
 }
 
-# Create a cloud source repo for the ORG phase Terraform code
-# NB: This will require a subsequent manual step to enable mirroring
-# to a private GitHub repo
-
-resource "google_sourcerepo_repository" "org-phase-repo" {
-  name    = var.org_phase_repo_name
-  project = google_project.seed.project_id
-  depends_on = [
-    google_project_service.enabled-apis
-  ]
-}
-
-# Create Cloud Build trigger to populate policy-lib repo
+# Conditionally create Cloud Build trigger to populate policy-lib repo
 # NB: Terraform Google provider does not support config of manual
 # Cloud Build triggers currently. However once created, this trigger
 # can be executed manually in the GCP Console
 
 resource "google_cloudbuild_trigger" "populate-policy-lib" {
-  name = "populate-policy-lib-repo"
+  count = var.enable_cb_triggers ? 1 : 0
+  name  = "populate-policy-lib-repo"
   trigger_template {
-    repo_name   = google_sourcerepo_repository.org-phase-repo.name
+    repo_name   = var.org_phase_repo_name
     branch_name = var.org_repo_policy_lib_trigger_branch
   }
   project = google_project.seed.project_id
   substitutions = {
     _TF_SA              = "${google_service_account.tf-sa.email}"
     _POLICY_LIB_PROJECT = "${google_project.registry.project_id}"
-    _POLICY_LIB_REPO    = "${google_sourcerepo_repository.org-phase-repo.id}"
+    _POLICY_LIB_REPO    = "${google_sourcerepo_repository.policy-lib-repo.id}"
   }
   filename = var.policy_lib_cb_job_config
   depends_on = [
-    google_sourcerepo_repository.org-phase-repo
+    google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
   ]
 }
 
-# Create Cloud Build trigger to run the core landing zone ORG deployment phase
+# Conditionally create Cloud Build trigger to run the core landing zone ORG deployment phase
 
 resource "google_cloudbuild_trigger" "plan-org-phase" {
-  name = "lz-org-terraform-plan"
+  count = var.enable_cb_triggers ? 1 : 0
+  name  = "lz-org-terraform-plan"
   trigger_template {
-    repo_name   = google_sourcerepo_repository.org-phase-repo.name
+    repo_name   = var.org_phase_repo_name
     branch_name = var.org_repo_deploy_org_trigger_branch
   }
   project = google_project.seed.project_id
@@ -253,7 +243,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
-    google_sourcerepo_repository.policy-lib-repo
+    google_cloudbuild_trigger.populate-policy-lib
   ]
 }
 
