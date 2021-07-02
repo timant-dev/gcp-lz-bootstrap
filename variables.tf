@@ -79,6 +79,7 @@ variable "artefact_registry_repo_id" {
 variable "org_phase_repo_name" {
   type        = string
   description = "Cloud Source Repository name for ORG phase repo"
+  default     = "lz-org"
 }
 
 variable "policy_lib_repo_name" {
