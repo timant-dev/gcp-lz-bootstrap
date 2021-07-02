@@ -90,7 +90,7 @@ variable "policy_lib_repo_name" {
 variable "org_repo_policy_lib_trigger_branch" {
   type        = string
   description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to populate policy-lib repo"
-  default     = "populate-policy-lib-placeholder"
+  default     = "main"
 }
 
 variable "enable_cb_triggers" {
@@ -108,7 +108,7 @@ variable "policy_lib_cb_job_config" {
 variable "org_repo_deploy_org_trigger_branch" {
   type        = string
   description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
-  default     = "deploy-org-placeholder"
+  default     = "main"
 }
 
 variable "plan_org_cb_job_config" {

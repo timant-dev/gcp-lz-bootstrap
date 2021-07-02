@@ -1,11 +1,17 @@
 # Landing Zone Bootstrap Steps
 
-Run the following steps to deploy the landing zone bootstrap infrastructure :
+## Bootstrap Steps
+
+This guide walks you through each step to set up the minimal bootstrap infrastructure that will enable the core GCP landing zone to be provisioned in a subsequent phase.
+
+- In each step, click the 'Copy to Cloud Shell' button next to each command to paste directly into the terminal.
+- Hit the **Start** button to begin
+
 
 ## 1. Set default region for Terraform state storage
 
 - This command will configure the region where you wish to locate a GCS storage bucket for Terraform state
-- Click the button to paste this to the Cloud Shell command line and add your region e.g. `us-east1`
+- Add your region e.g. `us-east1`
 
 ```sh
 export GCS_REGION="" 
@@ -86,11 +92,11 @@ export REPO_PROJ=$(gcloud projects list --filter='name ~ seed' --format='value(p
 ```
 
 ```sh
-terraform plan -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}}"
+terraform plan -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
 ```
 
 - Confirm the plan output and then apply the changes :
 
 ```sh
-terraform apply -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}}"
+terraform apply -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
 ```
