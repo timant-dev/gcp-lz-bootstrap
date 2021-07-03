@@ -156,6 +156,17 @@ resource "google_storage_bucket_iam_binding" "cb-sa-gcs-admin" {
   ]
 }
 
+resource "google_storage_bucket_iam_binding" "tf-sa-gcs-admin" {
+  bucket = google_storage_bucket.cloud-build-logs-artefacts.id
+  members = [
+    "serviceAccount:${google_service_account.tf-sa.email}",
+  ]
+  role = "roles/storage.objectAdmin"
+  depends_on = [
+    google_storage_bucket.cloud-build-logs-artefacts
+  ]
+}
+
 # Create an Artifact Registry repo for builder images and cloud build artefacts
 
 resource "google_artifact_registry_repository" "cb-registry" {
