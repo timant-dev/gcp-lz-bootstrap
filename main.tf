@@ -156,7 +156,7 @@ resource "google_storage_bucket_iam_binding" "cb-sa-gcs-admin" {
   ]
 }
 
-resource "google_storage_bucket_iam_binding" "tf-sa-gcs-admin" {
+resource "google_storage_bucket_iam_binding" "tf-sa-artefacts-gcs-admin" {
   bucket = google_storage_bucket.cloud-build-logs-artefacts.id
   members = [
     "serviceAccount:${google_service_account.tf-sa.email}",
