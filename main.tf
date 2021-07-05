@@ -293,6 +293,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
     _TF_SA              = "${google_service_account.tf-sa.email}"
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _GCS_REGION         = "${var.gcs_region}"
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
