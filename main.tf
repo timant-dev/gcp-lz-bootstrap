@@ -9,6 +9,8 @@ locals {
   registry_project_unique_id = "${var.artefact_project_id}-${random_id.rand_id.hex}"
 }
 
+# Create org-level root folders org/bootstrap, org/artefacts and org/root-envs
+
 resource "google_folder" "bootstrap" {
   display_name = var.parent_folder_name
   parent       = "organizations/${var.org_id}"
@@ -19,10 +21,12 @@ resource "google_folder" "artefacts" {
   parent       = "organizations/${var.org_id}"
 }
 
-resource "google_folder" "root-envs" {
-  display_name = var.root_envs_folder_name
-  parent       = "organizations/${var.org_id}"
-}
+# resource "google_folder" "root-envs" {
+#   display_name = var.root_envs_folder_name
+#   parent       = "organizations/${var.org_id}"
+# }
+
+# Create seed project
 
 resource "google_project" "seed" {
   name                = var.seed_project_id
@@ -32,6 +36,8 @@ resource "google_project" "seed" {
   folder_id           = google_folder.bootstrap.folder_id
   skip_delete         = false
 }
+
+# Enable APIs on seed project
 
 resource "google_project_service" "enabled-apis" {
   for_each                   = toset(var.enabled_apis)
@@ -44,6 +50,8 @@ resource "google_project_service" "enabled-apis" {
   ]
 }
 
+# Create registry project
+
 resource "google_project" "registry" {
   name                = var.artefact_project_id
   project_id          = local.registry_project_unique_id
@@ -52,6 +60,8 @@ resource "google_project" "registry" {
   folder_id           = google_folder.artefacts.folder_id
   skip_delete         = false
 }
+
+# Enable required APIs on registry project
 
 resource "google_project_service" "registry-enabled-apis" {
   for_each                   = toset(var.registry_enabled_apis)
@@ -63,6 +73,8 @@ resource "google_project_service" "registry-enabled-apis" {
     google_project.registry
   ]
 }
+
+# Create GCS bucket for Terraform state remote backend
 
 resource "google_storage_bucket" "tf-seed-state-bucket" {
   project                     = google_project.seed.project_id
@@ -78,6 +90,8 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
   ]
 }
 
+# Create GCS bucket for Cloud Build logs and build outputs
+
 resource "google_storage_bucket" "cloud-build-logs-artefacts" {
   project                     = google_project.seed.project_id
   name                        = local.cb_artefacts_bucket_name
@@ -92,6 +106,8 @@ resource "google_storage_bucket" "cloud-build-logs-artefacts" {
   ]
 }
 
+# Create Terraform service account
+
 resource "google_service_account" "tf-sa" {
   account_id   = var.tf_sa_name
   display_name = var.tf_sa_name
@@ -100,6 +116,8 @@ resource "google_service_account" "tf-sa" {
     google_storage_bucket.tf-seed-state-bucket
   ]
 }
+
+# Apply IAM roles for the Terraform service account to the root organisation node scope
 
 resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
   for_each = length(var.tf_iam_org_roles) == 0 ? [] : toset(var.tf_iam_org_roles)
@@ -113,9 +131,25 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
   ]
 }
 
-resource "google_folder_iam_binding" "tf-sa-folder-iam-roles" {
-  for_each = length(var.tf_iam_folder_roles) == 0 ? [] : toset(var.tf_iam_folder_roles)
-  folder   = google_folder.root-envs.folder_id
+# Apply IAM roles for the Terraform service account to the bootstrap folder scope
+
+# resource "google_folder_iam_binding" "tf-sa-folder-iam-roles" {
+#   for_each = length(var.tf_iam_folder_roles) == 0 ? [] : toset(var.tf_iam_folder_roles)
+#   folder   = google_folder.root-envs.folder_id
+#   members = [
+#     "serviceAccount:${google_service_account.tf-sa.email}"
+#   ]
+#   role = each.value
+#   depends_on = [
+#     google_service_account.tf-sa
+#   ]
+# }
+
+# Apply IAM roles for the Terraform service account to the seed project scope
+
+resource "google_project_iam_binding" "tf-sa-seed-project-iam-roles" {
+  for_each = length(var.tf_iam_project_roles) == 0 ? [] : toset(var.tf_iam_project_roles)
+  project  = google_project.seed.id
   members = [
     "serviceAccount:${google_service_account.tf-sa.email}"
   ]
@@ -125,41 +159,42 @@ resource "google_folder_iam_binding" "tf-sa-folder-iam-roles" {
   ]
 }
 
-resource "google_storage_bucket_iam_binding" "tf-sa-gcs-admin" {
+# Grant access to GCS bucket used as Terraform remote backend to Terraform & Cloud Build service accounts
+# This is required so Cloud Build can successfully initialise the Terraform backend before
+# running the remaining Terraform deployment via service account impersonation
+
+resource "google_storage_bucket_iam_binding" "sa-gcs-object-admin" {
   bucket = google_storage_bucket.tf-seed-state-bucket.id
   members = [
-    "serviceAccount:${google_service_account.tf-sa.email}"
+    "serviceAccount:${google_service_account.tf-sa.email}",
+    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   ]
-  role = "roles/storage.admin"
+  role = "roles/storage.objectAdmin"
   depends_on = [
     google_service_account.tf-sa
   ]
 }
 
+# Enable Cloud Build service account to impersonate (i.e. execute as) the Terraform service account
+
 resource "google_service_account_iam_binding" "cb-impersonate-tf-sa" {
   service_account_id = google_service_account.tf-sa.id
-  members            = ["serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"]
-  role               = "roles/iam.serviceAccountTokenCreator"
-  depends_on = [
-    google_folder_iam_binding.tf-sa-folder-iam-roles
-  ]
-}
-
-resource "google_storage_bucket_iam_binding" "cb-sa-gcs-admin" {
-  bucket = google_storage_bucket.tf-seed-state-bucket.id
   members = [
     "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   ]
-  role = "roles/storage.admin"
+  role = "roles/iam.serviceAccountTokenCreator"
   depends_on = [
-    google_storage_bucket.tf-seed-state-bucket
+    google_service_account.tf-sa
   ]
 }
 
-resource "google_storage_bucket_iam_binding" "tf-sa-artefacts-gcs-admin" {
+# Grant access to GCS bucket storing Cloud Build logs and outputs to Terraform & Cloud Build service accounts
+
+resource "google_storage_bucket_iam_binding" "sa-artefacts-gcs-object-admin" {
   bucket = google_storage_bucket.cloud-build-logs-artefacts.id
   members = [
     "serviceAccount:${google_service_account.tf-sa.email}",
+    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   ]
   role = "roles/storage.objectAdmin"
   depends_on = [
@@ -167,7 +202,7 @@ resource "google_storage_bucket_iam_binding" "tf-sa-artefacts-gcs-admin" {
   ]
 }
 
-# Create an Artifact Registry repo for builder images and cloud build artefacts
+# Create an Artifact Registry repo for Cloud Build builder images and build artefacts
 
 resource "google_artifact_registry_repository" "cb-registry" {
   provider      = google-beta
@@ -180,18 +215,22 @@ resource "google_artifact_registry_repository" "cb-registry" {
   ]
 }
 
-# Grant read/write access to artefact registry to Terraform service account
+# Grant read/write access to artefact registry to Terraform & Cloud Build service accounts
 
 resource "google_project_iam_binding" "cb-registry-read-write" {
   project = google_project.registry.project_id
-  members = ["serviceAccount:${google_service_account.tf-sa.email}"]
-  role    = "roles/artifactregistry.writer"
+  members = [
+    "serviceAccount:${google_service_account.tf-sa.email}",
+    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com",
+  ]
+  role = "roles/artifactregistry.writer"
   depends_on = [
     google_artifact_registry_repository.cb-registry
   ]
 }
 
 # Create a cloud source repo for the OPA policy library to be used by Terraform Validator
+#  and optionally Forseti
 
 resource "google_sourcerepo_repository" "policy-lib-repo" {
   name    = var.policy_lib_repo_name
@@ -201,7 +240,7 @@ resource "google_sourcerepo_repository" "policy-lib-repo" {
   ]
 }
 
-# Grant read/write access to the policy lib repo to Terraform service account
+# Grant read/write access to the policy lib repo to Terraform & Cloud Build service accounts
 
 resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write" {
   project    = google_project.registry.project_id
@@ -232,7 +271,7 @@ resource "google_cloudbuild_trigger" "populate-policy-lib" {
   substitutions = {
     _TF_SA              = "${google_service_account.tf-sa.email}"
     _POLICY_LIB_PROJECT = "${google_project.registry.project_id}"
-    _POLICY_LIB_REPO    = "${google_sourcerepo_repository.policy-lib-repo.id}"
+    _POLICY_LIB_REPO    = "${var.policy_lib_repo_name}"
   }
   filename = var.policy_lib_cb_job_config
   depends_on = [

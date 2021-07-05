@@ -71,6 +71,11 @@ variable "tf_iam_folder_roles" {
   description = "List of folder level IAM roles to assign to Terraform service account"
 }
 
+variable "tf_iam_project_roles" {
+  type        = list(string)
+  description = "List of project level IAM roles to assign to Terraform service account"
+}
+
 variable "artefact_registry_repo_id" {
   type        = string
   description = "Artefact Registry repo name"

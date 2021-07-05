@@ -29,14 +29,14 @@ registry_enabled_apis = [
     "sourcerepo.googleapis.com",
 ]
 tf_iam_org_roles = [
-    "roles/billing.user"
-]
-tf_iam_folder_roles = [
+    "roles/billing.user",
+    "roles/resourcemanager.projecCreator",
     "roles/resourcemanager.folderAdmin",
-    "roles/resourcemanager.projectCreator",
-    "roles/compute.admin",
-    "roles/serviceusage.serviceUsageAdmin"
+    "roles/serviceusage.serviceUsageAdmin",
+]
+tf_iam_folder_roles = []
+tf_iam_project_roles = [
+    "roles/cloudbuild.builds.editor",
 ]
 artefact_registry_repo_id = "artefact-repo"
-org_phase_repo_name = "lz-org"
 policy_lib_repo_name = "policy-lib"
