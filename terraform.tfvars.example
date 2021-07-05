@@ -1,4 +1,5 @@
 org_id = "XXXXXX"
+org_domain = "WWWWWW"
 billing_account_id = "ZZZZZZ"
 gcs_region = "YYYYYY"
 parent_folder_name = "bootstrap"

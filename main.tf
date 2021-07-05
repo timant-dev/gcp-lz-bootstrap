@@ -9,7 +9,7 @@ locals {
   registry_project_unique_id = "${var.artefact_project_id}-${random_id.rand_id.hex}"
 }
 
-# Create org-level root folders org/bootstrap, org/artefacts and org/root-envs
+# Create org-level root folders org/bootstrap and org/artefacts
 
 resource "google_folder" "bootstrap" {
   display_name = var.parent_folder_name
@@ -20,11 +20,6 @@ resource "google_folder" "artefacts" {
   display_name = var.artefacts_folder_name
   parent       = "organizations/${var.org_id}"
 }
-
-# resource "google_folder" "root-envs" {
-#   display_name = var.root_envs_folder_name
-#   parent       = "organizations/${var.org_id}"
-# }
 
 # Create seed project
 
@@ -129,21 +124,24 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
   depends_on = [
     google_service_account.tf-sa
   ]
+  # Remove default Billing Account Creator role from the domain
+  provisioner "local-exec" {
+    command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/billing.creator'"
+    environment = {
+      ORG_ID = "${var.org_id}"
+      DOMAIN = "${var.org_domain}"
+    }
+  }
+
+  # Remove default Project Creator role from the domain
+  provisioner "local-exec" {
+    command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/resourcemanager.projectCreator'"
+    environment = {
+      ORG_ID = "${var.org_id}"
+      DOMAIN = "${var.org_domain}"
+    }
+  }
 }
-
-# Apply IAM roles for the Terraform service account to the bootstrap folder scope
-
-# resource "google_folder_iam_binding" "tf-sa-folder-iam-roles" {
-#   for_each = length(var.tf_iam_folder_roles) == 0 ? [] : toset(var.tf_iam_folder_roles)
-#   folder   = google_folder.root-envs.folder_id
-#   members = [
-#     "serviceAccount:${google_service_account.tf-sa.email}"
-#   ]
-#   role = each.value
-#   depends_on = [
-#     google_service_account.tf-sa
-#   ]
-# }
 
 # Apply IAM roles for the Terraform service account to the seed project scope
 
@@ -158,6 +156,8 @@ resource "google_project_iam_binding" "tf-sa-seed-project-iam-roles" {
     google_service_account.tf-sa
   ]
 }
+
+
 
 # Grant access to GCS bucket used as Terraform remote backend to Terraform & Cloud Build service accounts
 # This is required so Cloud Build can successfully initialise the Terraform backend before

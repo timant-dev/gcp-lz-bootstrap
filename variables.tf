@@ -3,6 +3,11 @@ variable "org_id" {
   description = "Organisation ID"
 }
 
+variable "org_domain" {
+  type        = string
+  description = "Organisation domain name"
+}
+
 variable "billing_account_id" {
   type        = string
   description = "Billing account ID"
