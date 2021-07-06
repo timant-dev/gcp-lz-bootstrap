@@ -124,7 +124,11 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
   depends_on = [
     google_service_account.tf-sa
   ]
-  # Remove default Billing Account Creator role from the domain
+}
+
+# Remove default Billing Account and Project Creator roles from the domain
+
+resource "null_resource" "remove-default-billing-creator-role" {
   provisioner "local-exec" {
     command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/billing.creator'"
     environment = {
@@ -133,7 +137,6 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
     }
   }
 
-  # Remove default Project Creator role from the domain
   provisioner "local-exec" {
     command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/resourcemanager.projectCreator'"
     environment = {
@@ -141,6 +144,9 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
       DOMAIN = "${var.org_domain}"
     }
   }
+  depends_on = [
+    google_organization_iam_binding.tf-sa-org-iam-roles
+  ]
 }
 
 # Apply IAM roles for the Terraform service account to the seed project scope
