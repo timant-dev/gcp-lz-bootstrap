@@ -31,7 +31,7 @@ registry_enabled_apis = [
 ]
 tf_iam_org_roles = [
     "roles/billing.user",
-    "roles/resourcemanager.projecCreator",
+    "roles/resourcemanager.projectCreator",
     "roles/resourcemanager.folderAdmin",
     "roles/serviceusage.serviceUsageAdmin",
 ]
