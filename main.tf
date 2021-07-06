@@ -114,56 +114,57 @@ resource "google_service_account" "tf-sa" {
 
 # Apply IAM roles for the Terraform service account to the root organisation node scope
 
-resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
+resource "google_organization_iam_member" "tf-sa-org-iam-roles" {
   for_each = length(var.tf_iam_org_roles) == 0 ? [] : toset(var.tf_iam_org_roles)
   org_id   = var.org_id
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}"
-  ]
-  role = each.value
+  member   = "serviceAccount:${google_service_account.tf-sa.email}"
+  role     = each.value
   depends_on = [
     google_service_account.tf-sa
   ]
 }
 
-# Remove default Billing Account and Project Creator roles from the domain
+# Remove default Billing Account Creator role from the domain
 
-resource "null_resource" "remove-default-billing-creator-role" {
+resource "null_resource" "remove-domain-billing-creator-role" {
   provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member='domain:$ORG_DOMAIN' --role='roles/billing.creator'"
+    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/billing.creator"
     environment = {
-      ORG_ID     = "${var.org_id}"
-      ORG_DOMAIN = "${var.org_domain}"
-    }
-  }
-
-  provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member='domain:$ORG_DOMAIN' --role='roles/resourcemanager.projectCreator'"
-    environment = {
-      ORG_ID     = "${var.org_id}"
-      ORG_DOMAIN = "${var.org_domain}"
+      ORG_ID     = var.org_id
+      ORG_DOMAIN = var.org_domain
     }
   }
   depends_on = [
-    google_organization_iam_binding.tf-sa-org-iam-roles
+    google_organization_iam_member.tf-sa-org-iam-roles
+  ]
+}
+
+# Remove default Project Creator role from the domain
+
+resource "null_resource" "remove-domain-project-creator-role" {
+  provisioner "local-exec" {
+    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/resourcemanager.projectCreator"
+    environment = {
+      ORG_ID     = var.org_id
+      ORG_DOMAIN = var.org_domain
+    }
+  }
+  depends_on = [
+    google_organization_iam_member.tf-sa-org-iam-roles
   ]
 }
 
 # Apply IAM roles for the Terraform service account to the seed project scope
 
-resource "google_project_iam_binding" "tf-sa-seed-project-iam-roles" {
+resource "google_project_iam_member" "tf-sa-seed-project-iam-roles" {
   for_each = length(var.tf_iam_project_roles) == 0 ? [] : toset(var.tf_iam_project_roles)
   project  = google_project.seed.id
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}"
-  ]
-  role = each.value
+  member   = "serviceAccount:${google_service_account.tf-sa.email}"
+  role     = each.value
   depends_on = [
     google_service_account.tf-sa
   ]
 }
-
-
 
 # Grant access to GCS bucket used as Terraform remote backend to Terraform & Cloud Build service accounts
 # This is required so Cloud Build can successfully initialise the Terraform backend before
@@ -183,12 +184,10 @@ resource "google_storage_bucket_iam_binding" "sa-gcs-object-admin" {
 
 # Enable Cloud Build service account to impersonate (i.e. execute as) the Terraform service account
 
-resource "google_service_account_iam_binding" "cb-impersonate-tf-sa" {
+resource "google_service_account_iam_member" "cb-impersonate-tf-sa" {
   service_account_id = google_service_account.tf-sa.id
-  members = [
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
-  ]
-  role = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountTokenCreator"
   depends_on = [
     google_service_account.tf-sa
   ]
