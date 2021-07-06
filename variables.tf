@@ -126,3 +126,15 @@ variable "plan_org_cb_job_config" {
   description = "Cloud Build config file name for org plan job"
   default     = "cloudbuild-tf-plan-lz-org.yaml"
 }
+
+variable "terraform_builder_version" {
+  type        = string
+  description = "Terraform version to use in Cloud Build Terraform builder image"
+  default     = "1.0.1"
+}
+
+variable "terraform_builder_shasum" {
+  type        = string
+  description = "Terraform version SHA sum to use in Cloud Build Terraform builder image"
+  default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
+}

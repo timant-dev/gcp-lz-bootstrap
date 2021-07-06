@@ -306,3 +306,29 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   ]
 }
 
+# Clone Terraform Cloud Builder repo
+
+resource "null_resource" "clone-terraform-builder-repo" {
+  provisioner "local-exec" {
+    command = "cd $HOME && git clone https://github.com/GoogleCloudPlatform/cloud-builders-community.git && cd $HOME/cloud-builders-community/terraform"
+  }
+  depends_on = [
+    google_cloudbuild_trigger.plan-org-phase
+  ]
+}
+
+# Build Terraform Cloud Builder image
+
+resource "null_resource" "build-terraform-builder-image" {
+  provisioner "local-exec" {
+    command = "gcloud builds submit . --substitutions _TERRAFORM_VERSION=$TF_VER,_TERRAFORM_VERSION_SHA256SUM=$TF_SHASUM --project $SEED_PROJ"
+    environment = {
+      SEED_PROJ = local.seed_project_unique_id
+      TF_VER    = var.terraform_builder_version
+      TF_SHASUM = var.terraform_builder_shasum
+    }
+  }
+  depends_on = [
+    null_resource.clone-terraform-builder-repo
+  ]
+}
