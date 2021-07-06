@@ -5,7 +5,7 @@ export ORG_ID=$(gcloud organizations list --format='value(ID)')
 export ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)')
 export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
 export REGION=${GCS_REGION}
-if [[ (-z "${ORG_ID}") || (-z "${BILL_ID}") || (-z "${REGION}") || (-z "${ORG_DOMAIN") ]]
+if [[ (-z "${ORG_ID}") || (-z "${BILL_ID}") || (-z "${REGION}") || (-z "${ORG_DOMAIN}") ]]
 then
   echo "ERROR : Organisation ID, Domain, Billing Account ID or default region not populated"
   exit 1
