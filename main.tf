@@ -130,18 +130,18 @@ resource "google_organization_iam_binding" "tf-sa-org-iam-roles" {
 
 resource "null_resource" "remove-default-billing-creator-role" {
   provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/billing.creator'"
+    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member='domain:$ORG_DOMAIN' --role='roles/billing.creator'"
     environment = {
-      ORG_ID = "${var.org_id}"
-      DOMAIN = "${var.org_domain}"
+      ORG_ID     = "${var.org_id}"
+      ORG_DOMAIN = "${var.org_domain}"
     }
   }
 
   provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding ${ORG_ID} --member='domain:${ORG_DOMAIN}' --role='roles/resourcemanager.projectCreator'"
+    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member='domain:$ORG_DOMAIN' --role='roles/resourcemanager.projectCreator'"
     environment = {
-      ORG_ID = "${var.org_id}"
-      DOMAIN = "${var.org_domain}"
+      ORG_ID     = "${var.org_id}"
+      ORG_DOMAIN = "${var.org_domain}"
     }
   }
   depends_on = [
