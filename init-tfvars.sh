@@ -11,7 +11,7 @@ then
   exit 1
 fi
 
-sed -i.bak "s/XXXXXX/${ORG_ID}/;s/ZZZZZZ/${BILL_ID}/;s/YYYYYY/${REGION}/;s/WWWWWW/${ORG_DOMAIN}" ${PWD}/terraform.tfvars.example
+sed -i.bak "s/XXXXXX/${ORG_ID}/;s/ZZZZZZ/${BILL_ID}/;s/YYYYYY/${REGION}/;s/WWWWWW/${ORG_DOMAIN}/" ${PWD}/terraform.tfvars.example
 mv ${PWD}/terraform.tfvars.example ${PWD}/terraform.tfvars
 if [ -f "${PWD}/terraform.tfvars" ]
 then
