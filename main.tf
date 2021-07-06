@@ -150,7 +150,7 @@ resource "null_resource" "remove-domain-project-creator-role" {
     }
   }
   depends_on = [
-    google_organization_iam_member.tf-sa-org-iam-roles
+    null_resource.remove-domain-billing-creator-role
   ]
 }
 
