@@ -115,7 +115,13 @@ variable "policy_lib_cb_job_config" {
   default     = "cloudbuild-populate-policy-lib.yaml"
 }
 
-variable "org_repo_deploy_org_trigger_branch" {
+variable "org_repo_plan_org_trigger_branch" {
+  type        = string
+  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
+  default     = "org-plan"
+}
+
+variable "org_repo_apply_org_trigger_branch" {
   type        = string
   description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
   default     = "main"
