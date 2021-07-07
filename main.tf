@@ -355,7 +355,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
-    google_cloudbuild_trigger.populate-policy-lib
+    null_resource.push-policy-lib-to-csr
   ]
 }
 
