@@ -264,7 +264,7 @@ resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write"
 
 resource "null_resource" "clone-terraform-builder-repo" {
   provisioner "local-exec" {
-    command = "cd $HOME && git clone https://github.com/GoogleCloudPlatform/cloud-builders-community.git && cd $HOME/cloud-builders-community/terraform"
+    command = "cd $HOME && git clone https://github.com/GoogleCloudPlatform/cloud-builders-community.git"
   }
   depends_on = [
     google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
@@ -275,7 +275,7 @@ resource "null_resource" "clone-terraform-builder-repo" {
 
 resource "null_resource" "build-terraform-builder-image" {
   provisioner "local-exec" {
-    command = "gcloud builds submit . --substitutions _TERRAFORM_VERSION=$TF_VER,_TERRAFORM_VERSION_SHA256SUM=$TF_SHASUM --project $SEED_PROJ"
+    command = "cd $HOME/cloud-builders-community/terraform && gcloud builds submit . --substitutions _TERRAFORM_VERSION=$TF_VER,_TERRAFORM_VERSION_SHA256SUM=$TF_SHASUM --project $SEED_PROJ"
     environment = {
       SEED_PROJ = local.seed_project_unique_id
       TF_VER    = var.terraform_builder_version
@@ -291,7 +291,7 @@ resource "null_resource" "build-terraform-builder-image" {
 
 resource "null_resource" "clone-policy-lib" {
   provisioner "local-exec" {
-    command = "cd $HOME && git clone https://github.com/forseti-security/policy-library && cd $HOME/policy-library"
+    command = "cd $HOME && git clone https://github.com/forseti-security/policy-library.git"
   }
   depends_on = [
     null_resource.build-terraform-builder-image
@@ -302,7 +302,7 @@ resource "null_resource" "clone-policy-lib" {
 
 resource "null_resource" "push-policy-lib-to-csr" {
   provisioner "local-exec" {
-    command = "git remote add google https://source.developers.google.com/p/$REPO_PROJ/r/$REPO_NAME && git push -u google master"
+    command = "cd $HOME/policy-library && git remote add google https://source.developers.google.com/p/$REPO_PROJ/r/$REPO_NAME && git push -u google master"
     environment = {
       REPO_PROJ = local.registry_project_unique_id
       REPO_NAME = var.policy_lib_repo_name
@@ -312,30 +312,6 @@ resource "null_resource" "push-policy-lib-to-csr" {
     null_resource.clone-policy-lib
   ]
 }
-
-# Conditionally create Cloud Build trigger to populate policy-lib repo
-# NB: Terraform Google provider does not support config of manual
-# Cloud Build triggers currently. However once created, this trigger
-# can be executed manually in the GCP Console
-
-# resource "google_cloudbuild_trigger" "populate-policy-lib" {
-#   count = var.enable_cb_triggers ? 1 : 0
-#   name  = "populate-policy-lib-repo"
-#   trigger_template {
-#     repo_name   = var.org_phase_repo_name
-#     branch_name = var.org_repo_policy_lib_trigger_branch
-#   }
-#   project = google_project.seed.project_id
-#   substitutions = {
-#     _TF_SA              = "${google_service_account.tf-sa.email}"
-#     _POLICY_LIB_PROJECT = "${google_project.registry.project_id}"
-#     _POLICY_LIB_REPO    = "${var.policy_lib_repo_name}"
-#   }
-#   filename = var.policy_lib_cb_job_config
-#   depends_on = [
-#     google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
-#   ]
-# }
 
 # Conditionally create Cloud Build trigger to run the core landing zone ORG deployment terraform plan step
 
@@ -375,7 +351,7 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
   }
-  filename = var.plan_org_cb_job_config
+  filename = var.apply_org_cb_job_config
   depends_on = [
     google_cloudbuild_trigger.plan-org-phase
   ]

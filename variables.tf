@@ -86,6 +86,18 @@ variable "artefact_registry_repo_id" {
   description = "Artefact Registry repo name"
 }
 
+variable "terraform_builder_version" {
+  type        = string
+  description = "Terraform version to use in Cloud Build Terraform builder image"
+  default     = "1.0.1"
+}
+
+variable "terraform_builder_shasum" {
+  type        = string
+  description = "Terraform version SHA sum to use in Cloud Build Terraform builder image"
+  default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
+}
+
 variable "org_phase_repo_name" {
   type        = string
   description = "Cloud Source Repository name for ORG phase repo"
@@ -97,22 +109,10 @@ variable "policy_lib_repo_name" {
   description = "Cloud Source Repository name for OPA policy library repo"
 }
 
-variable "org_repo_policy_lib_trigger_branch" {
-  type        = string
-  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to populate policy-lib repo"
-  default     = "main"
-}
-
 variable "enable_cb_triggers" {
   type        = bool
   description = "Toggle to enable the provisioning of Cloud Build triggers"
   default     = false
-}
-
-variable "policy_lib_cb_job_config" {
-  type        = string
-  description = "Cloud Build config file name for policy-lib job"
-  default     = "cloudbuild-populate-policy-lib.yaml"
 }
 
 variable "org_repo_plan_org_trigger_branch" {
@@ -133,14 +133,8 @@ variable "plan_org_cb_job_config" {
   default     = "cloudbuild-tf-plan-lz-org.yaml"
 }
 
-variable "terraform_builder_version" {
+variable "apply_org_cb_job_config" {
   type        = string
-  description = "Terraform version to use in Cloud Build Terraform builder image"
-  default     = "1.0.1"
-}
-
-variable "terraform_builder_shasum" {
-  type        = string
-  description = "Terraform version SHA sum to use in Cloud Build Terraform builder image"
-  default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
+  description = "Cloud Build config file name for org apply job"
+  default     = "cloudbuild-tf-apply-lz-org.yaml"
 }
