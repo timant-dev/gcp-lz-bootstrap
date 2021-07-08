@@ -189,7 +189,7 @@ resource "google_service_account_iam_member" "cb-impersonate-tf-sa" {
   member             = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
   depends_on = [
-    google_service_account.tf-sa
+    google_project_iam_member.tf-sa-seed-project-iam-roles
   ]
 }
 
