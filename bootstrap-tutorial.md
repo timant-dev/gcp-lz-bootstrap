@@ -7,7 +7,7 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 - In each step, click the 'Copy to Cloud Shell' button next to each command to paste directly into the terminal.
 - Hit the **Start** button to begin
 
-## 0. Set landing zone customer short name
+## 1. Set landing zone customer short name
 
 - Sets an environment variable to be used to link to customer-specific Terraform source repo branches
 
@@ -15,10 +15,9 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 export CLIENT_NAME="client-abc"
 ```
 
-## 1. Set GCS region for Terraform state storage bucket and landing zone resource default region
+## 2. Set GCS region for Terraform state storage bucket
 
 - This command will configure the region where you wish to locate a GCS storage bucket for Terraform state
-- Also a default region to use for other landing zone resources
 - Edit to add the GCS region e.g. a single region like `us-east1` or multi-region such as `EU`
 
 ```sh
@@ -68,6 +67,8 @@ For GCS region, select one of the following :
    - EUR4 : EUROPE-NORTH1 and EUROPE-WEST4
    - NAM4 : US-CENTRAL1 and US-EAST1
 
+## 3. Set landing zone default region
+
 For default landing zone region, select one of the following :
 - __North America__
    - northamerica-northeast1
@@ -102,7 +103,7 @@ For default landing zone region, select one of the following :
    - australia-southeast1
    - australia-southeast2
 
-## 2. Initialise Terraform Variables
+## 4. Initialise Terraform Variables
 
 - This step inserts the Organisation ID, Billing Account ID and default region into the `terraform.tfvars.example` template. Run this script :
 
@@ -110,7 +111,7 @@ For default landing zone region, select one of the following :
 ./init-tfvars.sh
 ```
 
-## 3. Initialise Terraform
+## 5. Initialise Terraform
 
 - Once the `terraform.tfvars` file has been generated from the template, initialise Terraform :
 
@@ -118,7 +119,7 @@ For default landing zone region, select one of the following :
 terraform init
 ```
 
-## 4. Create a new Terraform workspace
+## 6. Create a new Terraform workspace
 
 - Create a new workspace named __bootstrap__ :
 
@@ -126,7 +127,7 @@ terraform init
 terraform workspace new bootstrap
 ```
 
-## 5. Generate a Terraform plan
+## 7. Generate a Terraform plan
 
 - Review the plan output before deploying : 
 
@@ -134,7 +135,7 @@ terraform workspace new bootstrap
 terraform plan
 ```
 
-## 6. Deploy the bootstrap resources
+## 8. Deploy the bootstrap resources
 
 - Deploy the Bootstrap infrastructure :
 
@@ -142,7 +143,7 @@ terraform plan
 terraform apply
 ```
 
-## 7. Update Terraform GCS backend configuration
+## 9. Update Terraform GCS backend configuration
 
 - This step updates the placeholder value in the Terraform backend configuration with the GCS bucket name just created by the deployment
 - Run the following script :
@@ -151,7 +152,7 @@ terraform apply
 ./init-backend.sh
 ```
 
-## 8. Migrate Terraform state to GCS backend
+## 10. Migrate Terraform state to GCS backend
 
 - The Terraform deployment created a __state__ file locally on the Cloud Shell VM
 - This step will migrate that local state to the newly created GCS bucket in the seed project :
@@ -160,7 +161,7 @@ terraform apply
 terraform init -migrate-state
 ```
 
-## 9. Add a mirrored GitHub repository to provide Cloud Build CI pipeline configuration (MANUAL STEP IN GCP CONSOLE)
+## 11. Add a mirrored GitHub repository to provide Cloud Build CI pipeline configuration (MANUAL STEP IN GCP CONSOLE)
 
 - This step comprises creating GCP Cloud Source Repository that __mirrors__ a private Github repository
 - Ensure you have a Github machine user account permissioned for access to the private repository
@@ -168,7 +169,7 @@ terraform init -migrate-state
 - Follow instructions on how to mirror your Github repo here : <https://cloud.google.com/source-repositories/docs/mirroring-a-github-repository#create_a_mirrored_repository> and then return to this tutorial once completed
 
 
-## 10. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
+## 12. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
 
 - Run the following commands passing in a command line variable to enable provisioning of the Cloud Build CI job triggers :
 
