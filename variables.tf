@@ -98,6 +98,12 @@ variable "terraform_builder_shasum" {
   default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
 }
 
+variable "terraform_validator_version" {
+  type        = string
+  description = "Terraform Validator binary version number"
+  default     = "v0.2.0"
+}
+
 variable "org_phase_repo_name" {
   type        = string
   description = "Cloud Source Repository name for ORG phase repo"
@@ -127,6 +133,12 @@ variable "org_repo_apply_org_trigger_branch" {
   default     = "main"
 }
 
+variable "org_repo_destroy_org_trigger_branch" {
+  type        = string
+  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to destroy org resources"
+  default     = "org-destroy"
+}
+
 variable "plan_org_cb_job_config" {
   type        = string
   description = "Cloud Build config file name for org plan job"
@@ -137,4 +149,10 @@ variable "apply_org_cb_job_config" {
   type        = string
   description = "Cloud Build config file name for org apply job"
   default     = "cloudbuild-tf-apply-lz-org.yaml"
+}
+
+variable "destroy_org_cb_job_config" {
+  type        = string
+  description = "Cloud Build config file name for org destroy job"
+  default     = "cloudbuild-tf-destroy-lz-org.yaml"
 }

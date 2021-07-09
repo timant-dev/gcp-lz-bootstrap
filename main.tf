@@ -264,22 +264,32 @@ resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write"
 
 resource "null_resource" "clone-terraform-builder-repo" {
   provisioner "local-exec" {
-    command = "cd $HOME && git clone https://github.com/GoogleCloudPlatform/cloud-builders-community.git"
+    command = "cd $HOME && git clone https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
   }
   depends_on = [
     google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
   ]
 }
 
-# Build Terraform Cloud Builder image and push to gcr.io to create a GCR repo on the seed project
+# Build Terraform Cloud Builder image (includes TF and TF Validator)
+# and push to gcr.io to create a GCR repo on the seed project
 
 resource "null_resource" "build-terraform-builder-image" {
   provisioner "local-exec" {
-    command = "cd $HOME/cloud-builders-community/terraform && gcloud builds submit . --substitutions _TERRAFORM_VERSION=$TF_VER,_TERRAFORM_VERSION_SHA256SUM=$TF_SHASUM --project $SEED_PROJ"
+    command = <<-EOT
+      gcloud builds submit $HOME/terraform-google-bootstrap/modules/cloudbuild/cloudbuild_builder \
+      --config $HOME/cloudshell_open/gcp-lz-bootstrap/cloudbuild-builder/cloudbuild.yaml \
+      --substitutions _REPO_REGION=$REPO_REGION,_REPO_PROJECT=$REPO_PROJECT,_REPO_ID=$REPO_ID \
+      --project $SEED_PROJ
+    EOT
     environment = {
-      SEED_PROJ = local.seed_project_unique_id
-      TF_VER    = var.terraform_builder_version
-      TF_SHASUM = var.terraform_builder_shasum
+      SEED_PROJ        = local.seed_project_unique_id
+      REPO_PROJECT     = local.registry_project_unique_id
+      REPO_ID          = var.artefact_registry_repo_id
+      TF_VER           = var.terraform_builder_version
+      TF_SHASUM        = var.terraform_builder_shasum
+      TF_VALIDATOR_VER = var.terraform_validator_version
+      REPO_REGION      = var.gcs_region
     }
   }
   depends_on = [
@@ -302,10 +312,10 @@ resource "null_resource" "clone-policy-lib" {
 
 resource "null_resource" "push-policy-lib-to-csr" {
   provisioner "local-exec" {
-    command = "cd $HOME/policy-library && git remote add google https://source.developers.google.com/p/$REPO_PROJ/r/$REPO_NAME && git push -u google master"
+    command = "cd $HOME/policy-library && git remote add google https://source.developers.google.com/p/$REPO_PROJECT/r/$REPO_NAME && git push -u google master"
     environment = {
-      REPO_PROJ = local.registry_project_unique_id
-      REPO_NAME = var.policy_lib_repo_name
+      REPO_PROJECT = local.registry_project_unique_id
+      REPO_NAME    = var.policy_lib_repo_name
     }
   }
   depends_on = [
@@ -328,6 +338,9 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
+    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_PROJECT       = local.registry_project_unique_id
+    _REPO_ID            = var.artefact_registry_repo_id
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
@@ -350,9 +363,37 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
+    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_PROJECT       = local.registry_project_unique_id
+    _REPO_ID            = var.artefact_registry_repo_id
   }
   filename = var.apply_org_cb_job_config
   depends_on = [
     google_cloudbuild_trigger.plan-org-phase
+  ]
+}
+
+# Conditionally create Cloud Build trigger to destroy the core landing zone ORG deployment
+
+resource "google_cloudbuild_trigger" "destroy-org-phase" {
+  count = var.enable_cb_triggers ? 1 : 0
+  name  = "lz-org-terraform-destroy"
+  trigger_template {
+    repo_name   = var.org_phase_repo_name
+    branch_name = var.org_repo_destroy_org_trigger_branch
+  }
+  project = google_project.seed.project_id
+  substitutions = {
+    _TF_SA              = "${google_service_account.tf-sa.email}"
+    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _GCS_REGION         = "${var.gcs_region}"
+    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_PROJECT       = local.registry_project_unique_id
+    _REPO_ID            = var.artefact_registry_repo_id
+  }
+  filename = var.destroy_org_cb_job_config
+  depends_on = [
+    google_cloudbuild_trigger.apply-org-phase
   ]
 }
