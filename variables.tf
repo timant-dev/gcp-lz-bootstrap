@@ -8,6 +8,11 @@ variable "org_domain" {
   description = "Organisation domain name"
 }
 
+variable "client_short_name" {
+  type        = string
+  description = "Short name for client to be used as prefix for git repo branches"
+}
+
 variable "billing_account_id" {
   type        = string
   description = "Billing account ID"
@@ -16,6 +21,11 @@ variable "billing_account_id" {
 variable "gcs_region" {
   type        = string
   description = "Region for GCS bucket for Terraform state"
+}
+
+variable "default_region" {
+  type        = string
+  description = "Default region for landing resources"
 }
 
 variable "parent_folder_name" {
@@ -121,22 +131,22 @@ variable "enable_cb_triggers" {
   default     = false
 }
 
-variable "org_repo_plan_org_trigger_branch" {
+variable "plan_trigger_branch_suffix" {
   type        = string
-  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
-  default     = "org-plan"
+  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to deploy org resources"
+  default     = "lz-plan"
 }
 
-variable "org_repo_apply_org_trigger_branch" {
+variable "apply_trigger_branch_suffix" {
   type        = string
   description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
-  default     = "main"
+  default     = "lz-apply"
 }
 
-variable "org_repo_destroy_org_trigger_branch" {
+variable "destroy_trigger_branch_suffix" {
   type        = string
-  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to destroy org resources"
-  default     = "org-destroy"
+  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to destroy org resources"
+  default     = "lz-destroy"
 }
 
 variable "plan_org_cb_job_config" {

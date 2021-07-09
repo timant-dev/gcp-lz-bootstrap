@@ -7,15 +7,100 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 - In each step, click the 'Copy to Cloud Shell' button next to each command to paste directly into the terminal.
 - Hit the **Start** button to begin
 
+## 0. Set landing zone customer short name
 
-## 1. Set default region for Terraform state storage
-
-- This command will configure the region where you wish to locate a GCS storage bucket for Terraform state
-- Add your region e.g. `us-east1`
+- Sets an environment variable to be used to link to customer-specific Terraform source repo branches
 
 ```sh
-export GCS_REGION="" 
+export CLIENT_NAME="client-abc"
 ```
+
+## 1. Set GCS region for Terraform state storage bucket and landing zone resource default region
+
+- This command will configure the region where you wish to locate a GCS storage bucket for Terraform state
+- Also a default region to use for other landing zone resources
+- Edit to add the GCS region e.g. a single region like `us-east1` or multi-region such as `EU`
+
+```sh
+export GCS_REGION="us-east1" && export DEFAULT_REGION="us-east1"
+```
+
+For GCS region, select one of the following :
+
+- __North America__
+   - NORTHAMERICA-NORTHEAST1 : Montréal
+   - US-CENTRAL1 : Iowa
+   - US-EAST1 : South Carolina
+   - US-EAST4 : Northern Virginia
+   - US-WEST1 : Oregon
+   - US-WEST2 : Los Angeles
+   - US-WEST3 : Salt Lake City
+   - US-WEST4 : Las Vegas
+- __South America__		
+   - SOUTHAMERICA-EAST1 : São Paulo
+- __Europe__
+   - EUROPE-CENTRAL2 : Warsaw
+   - EUROPE-NORTH1 : Finland
+   - EUROPE-WEST1 : Belgium
+   - EUROPE-WEST2 : London
+   - EUROPE-WEST3 : Frankfurt
+   - EUROPE-WEST4 : Netherlands
+   - EUROPE-WEST6 : Zürich
+- __Asia__
+   - ASIA-EAST1 : Taiwan
+   - ASIA-EAST2 : Hong Kong
+   - ASIA-NORTHEAST1 : Tokyo
+   - ASIA-NORTHEAST2 : Osaka
+   - ASIA-NORTHEAST3 : Seoul
+   - ASIA-SOUTH1 : Mumbai
+   - ASIA-SOUTH2 : Delhi
+   - ASIA-SOUTHEAST1 : Singapore
+   - ASIA-SOUTHEAST2 : Jakarta
+- __Australia__
+   - AUSTRALIA-SOUTHEAST1 : Sydney
+   - AUSTRALIA-SOUTHEAST2 : Melbourne
+- __Multi-regions__
+   - ASIA : Data centers in Asia
+   - EU : Data centers within member states of the European Union (excludes London & Zurich)
+   - US : Data centers in the United States
+- __Dual-regions__
+   - ASIA1 : ASIA-NORTHEAST1 and ASIA-NORTHEAST2
+   - EUR4 : EUROPE-NORTH1 and EUROPE-WEST4
+   - NAM4 : US-CENTRAL1 and US-EAST1
+
+For default landing zone region, select one of the following :
+- __North America__
+   - northamerica-northeast1
+   - us-central1
+   - us-east1
+   - us-east4
+   - us-west1
+   - us-west2
+   - us-west3
+   - us-west4
+- __South America__	
+   - southamerica-east1
+- __Europe__
+   - europe-central2
+   - europe-north1
+   - europe-west1
+   - europe-west2
+   - europe-west3
+   - europe-west4
+   - europe-west6
+- __Asia__
+   - asia-east1
+   - asia-east2
+   - asia-northeast1
+   - asia-northeast2
+   - asia-northeast3
+   - asia-south1
+   - asia-south2
+   - asia-southeast1
+   - asia-southeast2
+- __Australia__
+   - australia-southeast1
+   - australia-southeast2
 
 ## 2. Initialise Terraform Variables
 

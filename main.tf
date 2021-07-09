@@ -7,6 +7,9 @@ locals {
   cb_artefacts_bucket_name   = "${var.cb_artefacts_bucket_name}-${random_id.rand_id.hex}"
   seed_project_unique_id     = "${var.seed_project_id}-${random_id.rand_id.hex}"
   registry_project_unique_id = "${var.artefact_project_id}-${random_id.rand_id.hex}"
+  plan_branch_name           = "${var.client_short_name}-${var.plan_trigger_branch_suffix}"
+  apply_branch_name          = "${var.client_short_name}-${var.apply_trigger_branch_suffix}"
+  destroy_branch_name        = "${var.client_short_name}-${var.destroy_trigger_branch_suffix}"
 }
 
 # Create org-level root folders org/bootstrap and org/artefacts
@@ -212,7 +215,7 @@ resource "google_storage_bucket_iam_binding" "sa-artefacts-gcs-object-admin" {
 resource "google_artifact_registry_repository" "cb-registry" {
   provider      = google-beta
   repository_id = var.artefact_registry_repo_id
-  location      = var.gcs_region
+  location      = var.default_region
   project       = google_project.registry.project_id
   format        = "DOCKER"
   depends_on = [
@@ -289,7 +292,7 @@ resource "null_resource" "build-terraform-builder-image" {
       TF_VER           = var.terraform_builder_version
       TF_SHASUM        = var.terraform_builder_shasum
       TF_VALIDATOR_VER = var.terraform_validator_version
-      REPO_REGION      = var.gcs_region
+      REPO_REGION      = var.default_region
     }
   }
   depends_on = [
@@ -323,14 +326,14 @@ resource "null_resource" "push-policy-lib-to-csr" {
   ]
 }
 
-# Conditionally create Cloud Build trigger to run the core landing zone ORG deployment terraform plan step
+# Conditionally create Cloud Build trigger to plan the core landing zone ORG deployment
 
 resource "google_cloudbuild_trigger" "plan-org-phase" {
   count = var.enable_cb_triggers ? 1 : 0
   name  = "lz-org-terraform-plan"
   trigger_template {
     repo_name   = var.org_phase_repo_name
-    branch_name = var.org_repo_plan_org_trigger_branch
+    branch_name = local.plan_branch_name
   }
   project = google_project.seed.project_id
   substitutions = {
@@ -338,7 +341,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_REGION        = "${var.default_region}"
     _REPO_PROJECT       = local.registry_project_unique_id
     _REPO_ID            = var.artefact_registry_repo_id
   }
@@ -348,14 +351,14 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   ]
 }
 
-# Conditionally create Cloud Build trigger to run the core landing zone ORG deployment terraform apply step
+# Conditionally create Cloud Build trigger to apply the core landing zone ORG deployment
 
 resource "google_cloudbuild_trigger" "apply-org-phase" {
   count = var.enable_cb_triggers ? 1 : 0
   name  = "lz-org-terraform-apply"
   trigger_template {
     repo_name   = var.org_phase_repo_name
-    branch_name = var.org_repo_apply_org_trigger_branch
+    branch_name = local.apply_branch_name
   }
   project = google_project.seed.project_id
   substitutions = {
@@ -363,7 +366,7 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_REGION        = "${var.default_region}"
     _REPO_PROJECT       = local.registry_project_unique_id
     _REPO_ID            = var.artefact_registry_repo_id
   }
@@ -380,7 +383,7 @@ resource "google_cloudbuild_trigger" "destroy-org-phase" {
   name  = "lz-org-terraform-destroy"
   trigger_template {
     repo_name   = var.org_phase_repo_name
-    branch_name = var.org_repo_destroy_org_trigger_branch
+    branch_name = local.destroy_branch_name
   }
   project = google_project.seed.project_id
   substitutions = {
@@ -388,7 +391,7 @@ resource "google_cloudbuild_trigger" "destroy-org-phase" {
     _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
     _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.gcs_region}"
+    _REPO_REGION        = "${var.default_region}"
     _REPO_PROJECT       = local.registry_project_unique_id
     _REPO_ID            = var.artefact_registry_repo_id
   }
