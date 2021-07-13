@@ -29,71 +29,109 @@ variable "default_region" {
 }
 
 variable "parent_folder_name" {
-  type = string
+  type    = string
+  default = "bootstrap"
 }
 
 variable "artefacts_folder_name" {
-  type = string
+  type    = string
+  default = "artefacts"
 }
 
 variable "root_envs_folder_name" {
   type        = string
   description = "Root environment folder for production, non-production and development workload environments"
+  default     = "envs"
 }
 
 variable "seed_project_id" {
   type        = string
   description = "Project ID for seed project"
+  default     = "seed"
 }
 
 variable "artefact_project_id" {
   type        = string
   description = "Project ID for artefact registry project"
+  default     = "artefact-registry"
 }
 
 variable "tf_state_bucket_name" {
   type        = string
   description = "GCS bucket name for Terraform state"
+  default     = "lz-tf-state-seed"
 }
 
 variable "cb_artefacts_bucket_name" {
   type        = string
   description = "GCS bucket name for Cloud Build logs and artefacts"
+  default     = "lz-cb-artefacts-seed"
 }
 
 variable "tf_sa_name" {
   type        = string
   description = "Service account name for LZ foundation provisioning"
+  default     = "terraform-core"
 }
 
 variable "enabled_apis" {
   type        = list(string)
   description = "List of APIs to enable in seed project"
+  default = [
+    "cloudapis.googleapis.com",
+    "cloudasset.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "containerregistry.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "serviceusage.googleapis.com",
+    "sourcerepo.googleapis.com",
+    "storage-api.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com"
+  ]
 }
 
 variable "registry_enabled_apis" {
   type        = list(string)
   description = "List of APIs to enable in registry project"
+  default = [
+    "artifactregistry.googleapis.com",
+    "sourcerepo.googleapis.com",
+  ]
 }
 
 variable "tf_iam_org_roles" {
   type        = list(string)
   description = "List of org level IAM roles to assign to Terraform service account"
+  default = [
+    "roles/billing.user",
+    "roles/resourcemanager.projectCreator",
+    "roles/resourcemanager.folderAdmin",
+    "roles/serviceusage.serviceUsageAdmin",
+  ]
 }
 
 variable "tf_iam_folder_roles" {
   type        = list(string)
   description = "List of folder level IAM roles to assign to Terraform service account"
+  default     = []
 }
 
 variable "tf_iam_project_roles" {
   type        = list(string)
   description = "List of project level IAM roles to assign to Terraform service account"
+  default = [
+    "roles/cloudbuild.builds.editor",
+  ]
 }
 
 variable "artefact_registry_repo_id" {
   type        = string
   description = "Artefact Registry repo name"
+  default     = "artefact-repo"
 }
 
 variable "terraform_builder_version" {
@@ -123,6 +161,7 @@ variable "org_phase_repo_name" {
 variable "policy_lib_repo_name" {
   type        = string
   description = "Cloud Source Repository name for OPA policy library repo"
+  default     = "policy-lib"
 }
 
 variable "enable_cb_triggers" {

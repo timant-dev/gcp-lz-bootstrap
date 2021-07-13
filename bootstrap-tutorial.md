@@ -21,7 +21,7 @@ export CLIENT_NAME="client-abc"
 - Edit to add the GCS region e.g. a single region like `us-east1` or multi-region such as `EU`
 
 ```sh
-export GCS_REGION="us-east1" && export DEFAULT_REGION="us-east1"
+export GCS_REGION="us-east1"
 ```
 
 For GCS region, select one of the following :
@@ -68,6 +68,10 @@ For GCS region, select one of the following :
    - NAM4 : US-CENTRAL1 and US-EAST1
 
 ## 3. Set landing zone default region
+
+```sh
+export DEFAULT_REGION="us-east1"
+```
 
 For default landing zone region, select one of the following :
 - __North America__
@@ -140,7 +144,7 @@ terraform plan
 - Deploy the Bootstrap infrastructure :
 
 ```sh
-terraform apply
+terraform apply -auto-approve
 ```
 
 ## 9. Update Terraform GCS backend configuration
@@ -177,12 +181,8 @@ terraform init -migrate-state
 export REPO_PROJ=$(gcloud projects list --filter='name ~ seed' --format='value(projectId)') && export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ})
 ```
 
-```sh
-terraform plan -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
-```
-
-- Confirm the plan output and then apply the changes :
+- Apply the changes to create the Cloud Build job triggers :
 
 ```sh
-terraform apply -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
+terraform apply -auto-approve -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
 ```
