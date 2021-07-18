@@ -175,14 +175,21 @@ terraform init -migrate-state
 
 ## 12. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
 
-- Run the following commands passing in a command line variable to enable provisioning of the Cloud Build CI job triggers :
+- Run the following commands to populate a number of environment variables for the next Terraform step :
 
 ```sh
-export REPO_PROJ=$(gcloud projects list --filter='name ~ seed' --format='value(projectId)') && export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ})
+export REPO_PROJ=$(gcloud projects list --filter='name ~ ^seed' --format='value(projectId)') && \
+export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ}) && \
+export GITHUB_URL=$(gcloud source repos describe ${ORG_REPO} --project=${REPO_PROJ} --format='value(mirrorConfig.url)') && \
+export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
+export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
 ```
 
 - Apply the changes to create the Cloud Build job triggers :
 
 ```sh
-terraform apply -auto-approve -var="enable_cb_triggers=true" -var="org_phase_repo_name=${ORG_REPO}"
+terraform apply -auto-approve -var="enable_cb_triggers=true" \
+-var="org_phase_repo_name=${ORG_REPO}" \
+-var="github_terraform_repo_name=${GITHUB_REPO_NAME}" \
+-var="github_terraform_repo_url=${GITHUB_SSH_URL}"
 ```

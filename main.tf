@@ -326,6 +326,29 @@ resource "null_resource" "push-policy-lib-to-csr" {
   ]
 }
 
+# Create Secret Manager secret to hold Github SSH key for use by subsequent Cloud Build jobs to clone Terraform source repo
+
+resource "google_secret_manager_secret" "github_secret" {
+  secret_id = "github-deploy-key-${google_project.seed.project_id}"
+  project   = google_project.seed.project_id
+  ttl       = var.github_secret_ttl_secs
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.gcs_region
+      }
+    }
+  }
+}
+
+# Create Secret Manager secret data version
+
+resource "google_secret_manager_secret_version" "github_secret_version" {
+  secret      = google_secret_manager_secret.github_secret.id
+  secret_data = var.github_deploy_key
+}
+
 # Conditionally create Cloud Build trigger to plan the core landing zone ORG deployment
 
 resource "google_cloudbuild_trigger" "plan-org-phase" {
@@ -337,13 +360,18 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
+    _TF_SA                 = "${google_service_account.tf-sa.email}"
+    _TF_BUCKET             = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _CB_ARTEFACT_BUCKET    = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _GCS_REGION            = "${var.gcs_region}"
+    _REPO_REGION           = "${var.default_region}"
+    _REPO_PROJECT          = local.registry_project_unique_id
+    _REPO_ID               = var.artefact_registry_repo_id
+    _BRANCH_BASE_NAME      = var.client_short_name
+    _TF_MIRROR_REPO_NAME   = var.org_phase_repo_name
+    _GITHUB_TF_REPO_NAME   = var.github_terraform_repo_name
+    _GITHUB_TF_REPO_URL    = var.github_terraform_repo_url
+    _GITHUB_SECRET_VERSION = "${google_secret_manager_secret_version.github_secret_version.name}"
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
@@ -362,13 +390,17 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
+    _TF_SA                 = "${google_service_account.tf-sa.email}"
+    _TF_BUCKET             = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _CB_ARTEFACT_BUCKET    = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _GCS_REGION            = "${var.gcs_region}"
+    _REPO_REGION           = "${var.default_region}"
+    _REPO_PROJECT          = local.registry_project_unique_id
+    _REPO_ID               = var.artefact_registry_repo_id
+    _TF_MIRROR_REPO_NAME   = var.org_phase_repo_name
+    _GITHUB_TF_REPO_NAME   = var.github_terraform_repo_name
+    _GITHUB_TF_REPO_URL    = var.github_terraform_repo_url
+    _GITHUB_SECRET_VERSION = "${google_secret_manager_secret_version.github_secret_version.name}"
   }
   filename = var.apply_org_cb_job_config
   depends_on = [
@@ -387,13 +419,17 @@ resource "google_cloudbuild_trigger" "destroy-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
+    _TF_SA                 = "${google_service_account.tf-sa.email}"
+    _TF_BUCKET             = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _CB_ARTEFACT_BUCKET    = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _GCS_REGION            = "${var.gcs_region}"
+    _REPO_REGION           = "${var.default_region}"
+    _REPO_PROJECT          = local.registry_project_unique_id
+    _REPO_ID               = var.artefact_registry_repo_id
+    _TF_MIRROR_REPO_NAME   = var.org_phase_repo_name
+    _GITHUB_TF_REPO_NAME   = var.github_terraform_repo_name
+    _GITHUB_TF_REPO_URL    = var.github_terraform_repo_url
+    _GITHUB_SECRET_VERSION = "${google_secret_manager_secret_version.github_secret_version.name}"
   }
   filename = var.destroy_org_cb_job_config
   depends_on = [

@@ -86,6 +86,7 @@ variable "enabled_apis" {
     "containerregistry.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
+    "secretmanager.googleapis.com",
     "serviceusage.googleapis.com",
     "sourcerepo.googleapis.com",
     "storage-api.googleapis.com",
@@ -108,9 +109,14 @@ variable "tf_iam_org_roles" {
   description = "List of org level IAM roles to assign to Terraform service account"
   default = [
     "roles/billing.user",
-    "roles/resourcemanager.projectCreator",
+    "roles/cloudbuild.builds.editor",
     "roles/resourcemanager.folderAdmin",
+    "roles/resourcemanager.organizationAdmin",
+    "roles/resourcemanager.projectCreator",
+    "roles/resourcemanager.projectDeleter",
     "roles/serviceusage.serviceUsageAdmin",
+    "roles/source.admin",
+    "roles/storage.admin",
   ]
 }
 
@@ -125,6 +131,7 @@ variable "tf_iam_project_roles" {
   description = "List of project level IAM roles to assign to Terraform service account"
   default = [
     "roles/cloudbuild.builds.editor",
+    "roles/secretmanager.secretVersionManager",
   ]
 }
 
@@ -204,4 +211,25 @@ variable "destroy_org_cb_job_config" {
   type        = string
   description = "Cloud Build config file name for org destroy job"
   default     = "cloudbuild-tf-destroy-lz-org.yaml"
+}
+
+variable "github_terraform_repo_name" {
+  type        = string
+  description = "Name of the private Github repo containing landing zone Terraform source"
+}
+
+variable "github_terraform_repo_url" {
+  type        = string
+  description = "SSH URL of the private Github repo containing landing zone Terraform source"
+}
+
+variable "github_deploy_key" {
+  type        = string
+  description = "Github SSH deploy key value to be stored in Secret Manager"
+}
+
+variable "github_secret_ttl_secs" {
+  type        = string
+  description = "TTL value of Secret Manager secret holding Github deploy key value in seconds e.g. '3600s'"
+  default     = "86400s"
 }
