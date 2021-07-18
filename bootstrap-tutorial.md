@@ -194,14 +194,14 @@ export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@
 export SECRET_VERSION=$(terraform output -raw github_deploy_key_secret_version)
 export CB_LOGS_BUCKET=$(terraform output -raw cb_logs_bucket_url)
 export SEED_PROJ=$(terraform output -raw seed_project_id)
-export TF_SA=$(terraform output -raw tf_sa_fq_name)
+export TF_SA=$(terraform output -raw tf_sa_id)
 export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ} --format='value(url)')
 ```
 
 - Start a Cloud Build job to clone a private Github repo with landing zone Terraform source 
 
 ```sh
-gcloud builds submit $HOME \
+gcloud builds submit . \
 --substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL="${GITHUB_SSH_URL}",_REPO_NAME="${REPO_NAME}",_CSR_URL="${CSR_URL}",_TF_SA="${TF_SA}" \
 --project $SEED_PROJ
 ```

@@ -18,6 +18,6 @@ output "tf_sa_email" {
   value = google_service_account.tf-sa.email
 }
 
-output "tf_sa_fq_name" {
-  value = google_service_account.tf-sa.name
+output "tf_sa_id" {
+  value = google_service_account.tf-sa.id
 }
