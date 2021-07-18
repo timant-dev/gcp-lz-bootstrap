@@ -162,7 +162,7 @@ variable "terraform_validator_version" {
 variable "org_phase_repo_name" {
   type        = string
   description = "Cloud Source Repository name for ORG phase repo"
-  default     = "lz-org"
+  default     = "gcp-lz-org"
 }
 
 variable "policy_lib_repo_name" {

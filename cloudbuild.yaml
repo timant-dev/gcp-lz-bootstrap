@@ -1,0 +1,39 @@
+# Invoked from bootstrap process to clone private repo with additional Terraform source
+
+steps:
+  - id: 'read-github-deploy-key-from-secret-manager'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    secretEnv: ['GITHUB_DEPLOY_KEY']
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        echo "$$GITHUB_DEPLOY_KEY" >> /root/.ssh/id_ed25519
+        chmod 400 /root/.ssh/id_ed25519
+        ssh-keyscan -t ed25519 github.com 2>/dev/null >> /root/.ssh/known_hosts
+        cat /root/.ssh/id_ed25519
+    volumes:
+    - name: 'ssh'
+      path: /root/.ssh
+  - id: 'clone-terraform-git-repo'
+    name: 'gcr.io/cloud-builders/git'
+    args:
+      - clone
+      - ${_GITHUB_URL}
+    volumes:
+    - name: 'ssh'
+      path: /root/.ssh
+  - id: 'push-repo-to-csr'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - '-c'
+      - |
+        cd /workspace/_REPO_NAME
+        ls -la
+        git remote add google ${_CSR_URL}
+        git push -u google master
+logsBucket: '${_CB_ARTEFACT_BUCKET}/cb-logs/bootstrap'
+availableSecrets:
+  secretManager:
+  - versionName: $_GITHUB_SECRET_VERSION
+    env: 'GITHUB_DEPLOY_KEY'

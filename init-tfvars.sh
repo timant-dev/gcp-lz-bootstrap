@@ -1,29 +1,48 @@
 #!/bin/bash
 set -e
-echo "Interpolating organisation ID, domain, billing account ID and default region into Terraform variables template..."
+
+echo "Generating Terraform tfvars file..."
 export CLIENT_SHORT_NAME=${CLIENT_NAME}
 export ORG_ID=$(gcloud organizations list --format='value(ID)')
 export ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)')
 export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
 export LZ_GCS_REGION=${GCS_REGION}
 export LZ_DEFAULT_REGION=${DEFAULT_REGION}
+ssh-keygen -t ed25519 -N '' -f id_lz_github_bot_ed25519 -C ${GITHUB_BOT_USER}
+export GITHUB_DEPLOY_KEY=$(cat ${HOME}/id_lz_github_bot_ed25519)
+export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
+export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
+
 if [[ (-z "${CLIENT_SHORT_NAME}") || 
       (-z "${ORG_ID}") || 
+      (-z "${ORG_DOMAIN}") ||       
       (-z "${BILL_ID}") || 
       (-z "${LZ_GCS_REGION}") || 
       (-z "${LZ_DEFAULT_REGION}") || 
-      (-z "${ORG_DOMAIN}") ]]
+      (-z "${GITHUB_DEPLOY_KEY}") ||
+      (-z "${GITHUB_REPO_NAME}") ||      
+      (-z "${GITHUB_SSH_URL}") ]]
 then
-  echo "ERROR : Client name, Organisation ID, Domain, Billing Account ID or region values not populated"
+  echo "ERROR : One or more variables not populated"
   exit 1
 fi
 
-sed -i.bak "s/AAAAAA/${CLIENT_SHORT_NAME}/;s/BBBBBB/${LZ_DEFAULT_REGION}/;s/XXXXXX/${ORG_ID}/;s/ZZZZZZ/${BILL_ID}/;s/YYYYYY/${LZ_GCS_REGION}/;s/WWWWWW/${ORG_DOMAIN}/" ${PWD}/terraform.tfvars.example
-mv ${PWD}/terraform.tfvars.example ${PWD}/terraform.tfvars
+cat > ${PWD}/terraform.tfvars <<EOL
+org_id = "${ORG_ID}"
+org_domain = "${ORG_DOMAIN}"
+billing_account_id = "${BILL_ID}"
+client_short_name = "${CLIENT_SHORT_NAME}"
+gcs_region = "${LZ_GCS_REGION}"
+default_region = "${LZ_DEFAULT_REGION}"
+github_deploy_key = "${GITHUB_DEPLOY_KEY}"
+github_terraform_repo_name = "${GITHUB_REPO_NAME}"
+github_terraform_repo_url = "${GITHUB_SSH_URL}"
+EOL
+
 if [ -f "${PWD}/terraform.tfvars" ]
 then
-  echo "Generated terraform.tfvars file with client name, organisation ID, domain, billing account ID and region values"
-  head -3 ${PWD}/terraform.tfvars
+  echo "Generated terraform.tfvars file successfully"
+  cat ${PWD}/terraform.tfvars
 else
   echo "ERROR : terraform.tfvars file not generated successfully"
   exit 1

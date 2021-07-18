@@ -7,6 +7,13 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 - In each step, click the 'Copy to Cloud Shell' button next to each command to paste directly into the terminal.
 - Hit the **Start** button to begin
 
+## 0. Set variables for Github landing zone repository
+
+```sh
+export GITHUB_BOT_USER="github_machine_user_email" && \
+export GITHUB_URL="github_lz_terraform_repo_url"
+```
+
 ## 1. Set landing zone customer short name
 
 - Sets an environment variable to be used to link to customer-specific Terraform source repo branches
@@ -175,21 +182,30 @@ terraform init -migrate-state
 
 ## 12. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
 
-- Run the following commands to populate a number of environment variables for the next Terraform step :
+- Run the following commands to populate a number of environment variables for the next step :
 
 ```sh
-export REPO_PROJ=$(gcloud projects list --filter='name ~ ^seed' --format='value(projectId)') && \
-export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ}) && \
-export GITHUB_URL=$(gcloud source repos describe ${ORG_REPO} --project=${REPO_PROJ} --format='value(mirrorConfig.url)') && \
-export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
+# export REPO_PROJ=$(gcloud projects list --filter='name ~ ^seed' --format='value(projectId)') && \
+# export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ}) && \
+# export GITHUB_URL=$(gcloud source repos describe ${ORG_REPO} --project=${REPO_PROJ} --format='value(mirrorConfig.url)') && \
+export REPO_NAME=$(basename ${GITHUB_URL}) && \
 export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
+export SECRET_VERSION=$(terraform output -raw github_deploy_key_secret_version)
+export CB_LOGS_BUCKET=$(terraform output -raw cb_logs_bucket_url)
+export SEED_PROJ=$(terraform output -raw seed_project_id)
+export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ} --format='value(url)')
 ```
 
-- Apply the changes to create the Cloud Build job triggers :
+- Start a Cloud Build job to clone a private Github repo with landing zone Terraform source 
 
 ```sh
-terraform apply -auto-approve -var="enable_cb_triggers=true" \
--var="org_phase_repo_name=${ORG_REPO}" \
--var="github_terraform_repo_name=${GITHUB_REPO_NAME}" \
--var="github_terraform_repo_url=${GITHUB_SSH_URL}"
+gcloud builds submit $HOME \
+--substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL=${GITHUB_SSH_URL},_REPO_NAME="${REPO_NAME}",_CSR_URL="CSR_URL" \
+--project $SEED_PROJ
+```
+
+- Invoke Terraform to provision the landing zone Cloud Build job triggers :
+
+```sh
+terraform apply -auto-approve -var="enable_cb_triggers=true"
 ```

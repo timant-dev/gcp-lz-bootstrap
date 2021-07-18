@@ -35,6 +35,10 @@ resource "google_project" "seed" {
   skip_delete         = false
 }
 
+output "seed_project_id" {
+  value = google_project.seed.project_id
+}
+
 # Enable APIs on seed project
 
 resource "google_project_service" "enabled-apis" {
@@ -326,12 +330,36 @@ resource "null_resource" "push-policy-lib-to-csr" {
   ]
 }
 
+# Create Cloud Source Repository for landing zone Terraform source 
+
+resource "google_sourcerepo_repository" "tf_lz_source" {
+  name    = var.org_phase_repo_name
+  project = google_project.seed.project_id
+  depends_on = [
+    null_resource.push-policy-lib-to-csr
+  ]
+}
+
+# Grant read/write access to the Terraform source repo to Terraform & Cloud Build service accounts
+
+resource "google_sourcerepo_repository_iam_binding" "tf_lz_source_read_write" {
+  project    = google_project.seed.project_id
+  repository = google_sourcerepo_repository.tf_lz_source.name
+  members = [
+    "serviceAccount:${google_service_account.tf-sa.email}",
+    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  ]
+  role = "roles/source.writer"
+  depends_on = [
+    google_sourcerepo_repository.tf_lz_source
+  ]
+}
+
 # Create Secret Manager secret to hold Github SSH key for use by subsequent Cloud Build jobs to clone Terraform source repo
 
 resource "google_secret_manager_secret" "github_secret" {
   secret_id = "github-deploy-key-${google_project.seed.project_id}"
   project   = google_project.seed.project_id
-  ttl       = var.github_secret_ttl_secs
 
   replication {
     user_managed {
