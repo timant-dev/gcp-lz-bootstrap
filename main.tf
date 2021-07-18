@@ -364,6 +364,9 @@ resource "google_secret_manager_secret" "github_secret" {
       }
     }
   }
+  depends_on = [
+    google_project_service.registry-enabled-apis
+  ]
 }
 
 # Create Secret Manager secret data version
@@ -371,6 +374,15 @@ resource "google_secret_manager_secret" "github_secret" {
 resource "google_secret_manager_secret_version" "github_secret_version" {
   secret      = google_secret_manager_secret.github_secret.id
   secret_data = var.github_deploy_key
+}
+
+# Grant access to secret version to TF SA and CB SA
+
+resource "google_secret_manager_secret_iam_member" "tf_sa_github_secret_access" {
+  project   = google_project.seed.project_id
+  secret_id = google_secret_manager_secret.github_secret.id
+  role      = "roles/secretmanager.secretVersionManager"
+  member    = "serviceAccount:${google_service_account.tf-sa.email}"
 }
 
 # Conditionally create Cloud Build trigger to plan the core landing zone ORG deployment

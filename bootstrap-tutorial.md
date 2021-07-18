@@ -188,14 +188,13 @@ terraform init -migrate-state
 - Run the following commands to populate a number of environment variables for the next step :
 
 ```sh
-# export REPO_PROJ=$(gcloud projects list --filter='name ~ ^seed' --format='value(projectId)') && \
-# export ORG_REPO=$(gcloud source repos list --format='value(name)' --project=${REPO_PROJ}) && \
-# export GITHUB_URL=$(gcloud source repos describe ${ORG_REPO} --project=${REPO_PROJ} --format='value(mirrorConfig.url)') && \
+
 export REPO_NAME=$(basename ${GITHUB_URL}) && \
 export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
 export SECRET_VERSION=$(terraform output -raw github_deploy_key_secret_version)
 export CB_LOGS_BUCKET=$(terraform output -raw cb_logs_bucket_url)
 export SEED_PROJ=$(terraform output -raw seed_project_id)
+export TF_SA=$(terraform output -raw tf_sa_fq_name)
 export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ} --format='value(url)')
 ```
 
@@ -203,7 +202,7 @@ export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ
 
 ```sh
 gcloud builds submit $HOME \
---substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL=${GITHUB_SSH_URL},_REPO_NAME="${REPO_NAME}",_CSR_URL="CSR_URL" \
+--substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL="${GITHUB_SSH_URL}",_REPO_NAME="${REPO_NAME}",_CSR_URL="${CSR_URL}",_TF_SA="${TF_SA}" \
 --project $SEED_PROJ
 ```
 

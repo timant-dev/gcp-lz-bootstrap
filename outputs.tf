@@ -13,3 +13,11 @@ output "cb_logs_bucket_url" {
 output "seed_project_id" {
   value = google_project.seed.project_id
 }
+
+output "tf_sa_email" {
+  value = google_service_account.tf-sa.email
+}
+
+output "tf_sa_fq_name" {
+  value = google_service_account.tf-sa.name
+}
