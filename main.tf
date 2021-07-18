@@ -35,10 +35,6 @@ resource "google_project" "seed" {
   skip_delete         = false
 }
 
-output "seed_project_id" {
-  value = google_project.seed.project_id
-}
-
 # Enable APIs on seed project
 
 resource "google_project_service" "enabled-apis" {

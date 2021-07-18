@@ -1,6 +1,0 @@
-org_id = "XXXXXX"
-org_domain = "WWWWWW"
-billing_account_id = "ZZZZZZ"
-client_short_name = "AAAAAA"
-gcs_region = "YYYYYY"
-default_region = "BBBBBB"

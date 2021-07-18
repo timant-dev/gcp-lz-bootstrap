@@ -10,7 +10,10 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 ## 0. Set variables for Github landing zone repository
 
 ```sh
-export GITHUB_BOT_USER="github_machine_user_email" && \
+export GITHUB_BOT_USER="github_machine_user_email"
+```
+
+```sh
 export GITHUB_URL="github_lz_terraform_repo_url"
 ```
 

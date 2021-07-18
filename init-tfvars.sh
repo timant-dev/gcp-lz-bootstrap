@@ -9,7 +9,7 @@ export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)'
 export LZ_GCS_REGION=${GCS_REGION}
 export LZ_DEFAULT_REGION=${DEFAULT_REGION}
 ssh-keygen -t ed25519 -N '' -f id_lz_github_bot_ed25519 -C ${GITHUB_BOT_USER}
-export GITHUB_DEPLOY_KEY=$(cat ${HOME}/id_lz_github_bot_ed25519)
+export GITHUB_DEPLOY_KEY=$(cat ${PWD}/id_lz_github_bot_ed25519)
 export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
 export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
 
@@ -34,9 +34,11 @@ billing_account_id = "${BILL_ID}"
 client_short_name = "${CLIENT_SHORT_NAME}"
 gcs_region = "${LZ_GCS_REGION}"
 default_region = "${LZ_DEFAULT_REGION}"
-github_deploy_key = "${GITHUB_DEPLOY_KEY}"
 github_terraform_repo_name = "${GITHUB_REPO_NAME}"
 github_terraform_repo_url = "${GITHUB_SSH_URL}"
+github_deploy_key = <<EOT
+"${GITHUB_DEPLOY_KEY}"
+EOT
 EOL
 
 if [ -f "${PWD}/terraform.tfvars" ]
