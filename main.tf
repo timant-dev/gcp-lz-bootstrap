@@ -365,7 +365,7 @@ resource "google_secret_manager_secret" "github_secret" {
     }
   }
   depends_on = [
-    google_project_service.registry-enabled-apis
+    google_sourcerepo_repository_iam_binding.tf_lz_source_read_write
   ]
 }
 
@@ -376,7 +376,7 @@ resource "google_secret_manager_secret_version" "github_secret_version" {
   secret_data = var.github_deploy_key
 }
 
-# Grant access to secret version to TF SA and CB SA
+# Grant version manager access to secret version to the Terraform service account
 
 resource "google_secret_manager_secret_iam_member" "tf_sa_github_secret_access" {
   project   = google_project.seed.project_id
@@ -384,6 +384,27 @@ resource "google_secret_manager_secret_iam_member" "tf_sa_github_secret_access" 
   role      = "roles/secretmanager.secretVersionManager"
   member    = "serviceAccount:${google_service_account.tf-sa.email}"
 }
+
+# Grant read access to the secret version to the Cloud Build service account
+
+resource "google_secret_manager_secret_iam_member" "cb_sa_github_secret_access" {
+  project   = google_project.seed.project_id
+  secret_id = google_secret_manager_secret.github_secret.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+}
+
+# ==========================================================================================
+# 
+# The following section contains Cloud Build trigger resources that are provisioned
+# separately based on the 'enable_cb_triggers' boolean variable.
+# This enables two separate deployment runs of this Terraform configuration :
+# 1. All of the resources up to this point are created first
+# 2. Once a manual step has been completed to add a public SSH deploy key to Github, the 
+#    second deployment run is executed with the 'enable_cb_triggers' value set to true
+# 
+# ==========================================================================================
+
 
 # Conditionally create Cloud Build trigger to plan the core landing zone ORG deployment
 

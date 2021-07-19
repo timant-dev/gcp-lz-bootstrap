@@ -33,7 +33,6 @@ steps:
         git remote add google ${_CSR_URL}
         git push -u google master
 logsBucket: '${_CB_ARTEFACT_BUCKET}/cb-logs/bootstrap'
-serviceAccount: '${_TF_SA}'
 availableSecrets:
   secretManager:
   - versionName: ${_GITHUB_SECRET_VERSION}

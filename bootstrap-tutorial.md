@@ -10,11 +10,11 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 ## 0. Set variables for Github landing zone repository
 
 ```sh
-export GITHUB_BOT_USER="github_machine_user_email"
+export GITHUB_BOT_USER="github-machine-user-email"
 ```
 
 ```sh
-export GITHUB_URL="github_lz_terraform_repo_url"
+export GITHUB_URL="https://github.com/"
 ```
 
 ## 1. Set landing zone customer short name
@@ -202,7 +202,7 @@ export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ
 
 ```sh
 gcloud builds submit . \
---substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL="${GITHUB_SSH_URL}",_REPO_NAME="${REPO_NAME}",_CSR_URL="${CSR_URL}",_TF_SA="${TF_SA}" \
+--substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL="${GITHUB_SSH_URL}",_REPO_NAME="${REPO_NAME}",_CSR_URL="${CSR_URL}" \
 --project $SEED_PROJ
 ```
 
