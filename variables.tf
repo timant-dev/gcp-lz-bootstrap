@@ -213,23 +213,8 @@ variable "destroy_org_cb_job_config" {
   default     = "cloudbuild-tf-destroy-lz-org.yaml"
 }
 
-variable "github_terraform_repo_name" {
+variable "clone_tf_csr_repo_name" {
   type        = string
-  description = "Name of the private Github repo containing landing zone Terraform source"
-}
-
-variable "github_terraform_repo_url" {
-  type        = string
-  description = "SSH URL of the private Github repo containing landing zone Terraform source"
-}
-
-variable "github_deploy_key" {
-  type        = string
-  description = "Github SSH deploy key value to be stored in Secret Manager"
-}
-
-variable "github_secret_ttl_secs" {
-  type        = string
-  description = "TTL value of Secret Manager secret holding Github deploy key value in seconds e.g. '3600s'"
-  default     = "86400s"
+  description = "Name for cloned Terraform CSR repo in Cloud Build builder workspace"
+  default     = "gcp_lz_org_clone"
 }

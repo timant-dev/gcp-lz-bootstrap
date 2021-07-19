@@ -10,10 +10,8 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 ## 0. Set variables for Github landing zone repository
 
 ```sh
-export GITHUB_BOT_USER="github-machine-user-email"
-```
-
-```sh
+export GITHUB_BOT_USER="github-machine-user-email" && \
+export GITHUB_BOT_NAME="github-bot-name" && \
 export GITHUB_URL="https://github.com/"
 ```
 
@@ -172,39 +170,49 @@ terraform apply -auto-approve
 - This step will migrate that local state to the newly created GCS bucket in the seed project :
 
 ```sh
-terraform init -migrate-state
+terraform init -migrate-state -auto-approve
 ```
 
-## 11. Add a mirrored GitHub repository to provide Cloud Build CI pipeline configuration (MANUAL STEP IN GCP CONSOLE)
+## 11. Clone a private GitHub repository to provide Cloud Build CI pipeline configuration
 
-- This step comprises creating GCP Cloud Source Repository that __mirrors__ a private Github repository
+- This step comprises cloning a private Github repository & pushing it into a GCP Cloud Source Repository
 - Ensure you have a Github machine user account permissioned for access to the private repository
-- Sign out of any Github sessions beforehand
-- Follow instructions on how to mirror your Github repo here : <https://cloud.google.com/source-repositories/docs/mirroring-a-github-repository#create_a_mirrored_repository> and then return to this tutorial once completed
 
-
-## 12. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
-
-- Run the following commands to populate a number of environment variables for the next step :
+- First configure the Cloudshell user credentials to connect to the private Github repo
 
 ```sh
-
-export REPO_NAME=$(basename ${GITHUB_URL}) && \
-export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
-export SECRET_VERSION=$(terraform output -raw github_deploy_key_secret_version)
-export CB_LOGS_BUCKET=$(terraform output -raw cb_logs_bucket_url)
-export SEED_PROJ=$(terraform output -raw seed_project_id)
-export TF_SA=$(terraform output -raw tf_sa_id)
-export CSR_URL=$(gcloud source repos describe ${REPO_NAME} --project=${SEED_PROJ} --format='value(url)')
+ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github && \
+ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && \
+cat <<EOF >~/.ssh/config
+Hostname github.com
+IdentityFile ~/.ssh/id_github
+UserKnownHostsFile ~/.ssh/known_hosts
+EOF
 ```
 
-- Start a Cloud Build job to clone a private Github repo with landing zone Terraform source 
+- Next configure the Cloudshell git session and clone the Github repository
 
 ```sh
-gcloud builds submit . \
---substitutions _GITHUB_SECRET_VERSION="${SECRET_VERSION}",_CB_ARTEFACT_BUCKET="${CB_LOGS_BUCKET}",_GITHUB_URL="${GITHUB_SSH_URL}",_REPO_NAME="${REPO_NAME}",_CSR_URL="${CSR_URL}" \
---project $SEED_PROJ
+export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/') && \
+git config --global user.email "${GITHUB_BOT_USER}" && \
+git config --global user.name "${GITHUB_BOT_NAME}" && \
+git config --global credential.https://source.developers.google.com.helper gcloud.sh && \
+cd ${HOME} && git clone ${GITHUB_SSH_URL}
 ```
+
+## 12. Push the cloned Github repo into a Cloud Source Repository
+
+- Define a remote that points to the empty CSR and push the cloned repo 
+
+```sh
+export SEED_PROJ=$(terraform output -raw seed_project_id) && \
+export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
+cd ${HOME}/${GITHUB_REPO_NAME} && \
+git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME} && \
+git push -u google --all
+```
+
+## 13. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
 
 - Invoke Terraform to provision the landing zone Cloud Build job triggers :
 
