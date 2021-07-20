@@ -218,16 +218,16 @@ export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@
 ```
 
 ```sh
+export SEED_PROJ=$(terraform output -raw seed_project_id) && export GITHUB_REPO_NAME=$(basename ${GITHUB_URL})
+```
+
+```sh
 cd ${HOME} && git clone ${GITHUB_SSH_URL}
 ```
 
 ## 14. Push the cloned Github repo into a Cloud Source Repository
 
 - Define a remote that points to the empty CSR created by the Bootstrap Terraform configuration and push the cloned repo 
-
-```sh
-export SEED_PROJ=$(terraform output -raw seed_project_id) && export GITHUB_REPO_NAME=$(basename ${GITHUB_URL})
-```
 
 ```sh
 cd ${HOME}/${GITHUB_REPO_NAME}
@@ -238,7 +238,7 @@ git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GI
 ```
 
 ```sh
-git push google --all
+git push --all google
 ```
 
 ## 15. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
