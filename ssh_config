@@ -1,0 +1,3 @@
+Hostname github.com
+IdentityFile ~/.ssh/id_github
+UserKnownHostsFile ~/.ssh/known_hosts

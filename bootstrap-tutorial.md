@@ -10,8 +10,14 @@ This guide walks you through each step to set up the minimal bootstrap infrastru
 ## 0. Set variables for Github landing zone repository
 
 ```sh
-export GITHUB_BOT_USER="github-machine-user-email" && \
-export GITHUB_BOT_NAME="github-bot-name" && \
+export GITHUB_BOT_USER="github-machine-user-email"
+```
+
+```sh
+export GITHUB_BOT_NAME="github-bot-name"
+```
+
+```sh
 export GITHUB_URL="https://github.com/"
 ```
 
@@ -170,7 +176,7 @@ terraform apply -auto-approve
 - This step will migrate that local state to the newly created GCS bucket in the seed project :
 
 ```sh
-terraform init -migrate-state -auto-approve
+terraform init -migrate-state
 ```
 
 ## 11. Clone a private GitHub repository to provide Cloud Build CI pipeline configuration
@@ -181,41 +187,64 @@ terraform init -migrate-state -auto-approve
 - First configure the Cloudshell user credentials to connect to the private Github repo
 
 ```sh
-ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github && \
-ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && \
-cat <<EOF >~/.ssh/config
-Hostname github.com
-IdentityFile ~/.ssh/id_github
-UserKnownHostsFile ~/.ssh/known_hosts
-EOF
+ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github
 ```
 
-- Next configure the Cloudshell git session and clone the Github repository
+```sh
+ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && cat ssh_config >~/.ssh/config
+```
+
+- Next configure the Cloudshell git session
 
 ```sh
-export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/') && \
-git config --global user.email "${GITHUB_BOT_USER}" && \
-git config --global user.name "${GITHUB_BOT_NAME}" && \
-git config --global credential.https://source.developers.google.com.helper gcloud.sh && \
+git config --global user.email "${GITHUB_BOT_USER}" && git config --global user.name "${GITHUB_BOT_NAME}"
+```
+
+```sh
+git config --global credential.https://source.developers.google.com.helper gcloud.sh && export WORKDIR=${PWD}
+```
+
+## 12. Add the public SSH key as a deploy key on the Github repo
+
+- Copy the generated public key and add it as a deploy key on the private Github repo
+- See instructions here : <https://docs.github.com/en/developers/overview/managing-deploy-keys#deploy-keys>
+- Once you've added the deploy key to the Github repo, return to this tutorial for the next step
+
+
+## 13. Clone the Github repo 
+
+```sh
+export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
+```
+
+```sh
 cd ${HOME} && git clone ${GITHUB_SSH_URL}
 ```
 
-## 12. Push the cloned Github repo into a Cloud Source Repository
+## 14. Push the cloned Github repo into a Cloud Source Repository
 
-- Define a remote that points to the empty CSR and push the cloned repo 
+- Define a remote that points to the empty CSR created by the Bootstrap Terraform configuration and push the cloned repo 
 
 ```sh
-export SEED_PROJ=$(terraform output -raw seed_project_id) && \
-export GITHUB_REPO_NAME=$(basename ${GITHUB_URL}) && \
-cd ${HOME}/${GITHUB_REPO_NAME} && \
-git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME} && \
-git push -u google --all
+export SEED_PROJ=$(terraform output -raw seed_project_id) && export GITHUB_REPO_NAME=$(basename ${GITHUB_URL})
 ```
 
-## 13. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
-
-- Invoke Terraform to provision the landing zone Cloud Build job triggers :
+```sh
+cd ${HOME}/${GITHUB_REPO_NAME}
+```
 
 ```sh
-terraform apply -auto-approve -var="enable_cb_triggers=true"
+git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME}
+```
+
+```sh
+git push google --all
+```
+
+## 15. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
+
+- Invoke Terraform to provision the landing zone Cloud Build job triggers and complete the Bootstrap phase
+
+```sh
+cd ${WORKDIR} && terraform apply -auto-approve -var="enable_cb_triggers=true"
 ```
