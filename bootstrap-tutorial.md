@@ -241,6 +241,10 @@ git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GI
 git push --all google
 ```
 
+```sh
+git checkout --track remotes/origin/develop && git push google
+```
+
 ## 15. Run Terraform to add Cloud Build CI job triggers for next landing zone deployment phase
 
 - Invoke Terraform to provision the landing zone Cloud Build job triggers and complete the Bootstrap phase
