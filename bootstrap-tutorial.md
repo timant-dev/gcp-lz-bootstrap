@@ -191,7 +191,7 @@ ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github
 ```
 
 ```sh
-ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && cat ssh_config >~/.ssh/config
+ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && cat ssh_config_template >~/.ssh/config
 ```
 
 - Next configure the Cloudshell git session
