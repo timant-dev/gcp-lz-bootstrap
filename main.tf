@@ -373,17 +373,18 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
-    _BRANCH_BASE_NAME   = var.client_short_name
-    _TF_CSR_REPO_NAME   = var.org_phase_repo_name
-    _TF_CSR_REPO_PROJ   = "${google_project.seed.project_id}"
-    _CLONE_TF_REPO_NAME = var.clone_tf_csr_repo_name
+    _BRANCH_BASE_NAME         = var.client_short_name
+    _CB_ARTEFACT_BUCKET       = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _CLONE_TF_REPO_NAME       = var.clone_tf_csr_repo_name
+    _GCS_REGION               = "${var.gcs_region}"
+    _REPO_ID                  = var.artefact_registry_repo_id
+    _REPO_PROJECT             = local.registry_project_unique_id
+    _REPO_REGION              = "${var.default_region}"
+    _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _TF_CSR_REPO_NAME         = var.org_phase_repo_name
+    _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
+    _TF_SA                    = "${google_service_account.tf-sa.email}"
+    _WORKLOAD_NETWORK_REGIONS = var.workload_env_subnet_regions
   }
   filename = var.plan_org_cb_job_config
   depends_on = [
@@ -402,17 +403,18 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
-    _BRANCH_BASE_NAME   = var.client_short_name
-    _TF_CSR_REPO_NAME   = var.org_phase_repo_name
-    _TF_CSR_REPO_PROJ   = "${google_project.seed.project_id}"
-    _CLONE_TF_REPO_NAME = var.clone_tf_csr_repo_name
+    _BRANCH_BASE_NAME         = var.client_short_name
+    _CB_ARTEFACT_BUCKET       = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _CLONE_TF_REPO_NAME       = var.clone_tf_csr_repo_name
+    _GCS_REGION               = "${var.gcs_region}"
+    _REPO_ID                  = var.artefact_registry_repo_id
+    _REPO_PROJECT             = local.registry_project_unique_id
+    _REPO_REGION              = "${var.default_region}"
+    _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _TF_CSR_REPO_NAME         = var.org_phase_repo_name
+    _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
+    _TF_SA                    = "${google_service_account.tf-sa.email}"
+    _WORKLOAD_NETWORK_REGIONS = var.workload_env_subnet_regions
   }
   filename = var.apply_org_cb_job_config
   depends_on = [
@@ -431,17 +433,18 @@ resource "google_cloudbuild_trigger" "destroy-org-phase" {
   }
   project = google_project.seed.project_id
   substitutions = {
-    _TF_SA              = "${google_service_account.tf-sa.email}"
-    _TF_BUCKET          = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _CB_ARTEFACT_BUCKET = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _GCS_REGION         = "${var.gcs_region}"
-    _REPO_REGION        = "${var.default_region}"
-    _REPO_PROJECT       = local.registry_project_unique_id
-    _REPO_ID            = var.artefact_registry_repo_id
-    _BRANCH_BASE_NAME   = var.client_short_name
-    _TF_CSR_REPO_NAME   = var.org_phase_repo_name
-    _TF_CSR_REPO_PROJ   = "${google_project.seed.project_id}"
-    _CLONE_TF_REPO_NAME = var.clone_tf_csr_repo_name
+    _BRANCH_BASE_NAME         = var.client_short_name
+    _CB_ARTEFACT_BUCKET       = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
+    _CLONE_TF_REPO_NAME       = var.clone_tf_csr_repo_name
+    _GCS_REGION               = "${var.gcs_region}"
+    _REPO_ID                  = var.artefact_registry_repo_id
+    _REPO_PROJECT             = local.registry_project_unique_id
+    _REPO_REGION              = "${var.default_region}"
+    _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
+    _TF_CSR_REPO_NAME         = var.org_phase_repo_name
+    _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
+    _TF_SA                    = "${google_service_account.tf-sa.email}"
+    _WORKLOAD_NETWORK_REGIONS = var.workload_env_subnet_regions
   }
   filename = var.destroy_org_cb_job_config
   depends_on = [

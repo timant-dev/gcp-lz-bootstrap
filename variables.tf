@@ -86,6 +86,7 @@ variable "enabled_apis" {
     "containerregistry.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
+    "orgpolicy.googleapis.com",
     "secretmanager.googleapis.com",
     "serviceusage.googleapis.com",
     "sourcerepo.googleapis.com",
@@ -218,4 +219,9 @@ variable "clone_tf_csr_repo_name" {
   type        = string
   description = "Name for cloned Terraform CSR repo in Cloud Build builder workspace"
   default     = "gcp_lz_org_clone"
+}
+
+variable "workload_env_subnet_regions" {
+  type        = string
+  description = "Comma delimited string listing region names for which subnets will be created in shared VPC host projects in workload environment folders"
 }

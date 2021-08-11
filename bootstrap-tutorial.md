@@ -81,10 +81,14 @@ For GCS region, select one of the following :
    - EUR4 : EUROPE-NORTH1 and EUROPE-WEST4
    - NAM4 : US-CENTRAL1 and US-EAST1
 
-## 3. Set landing zone default region
+## 3. Set landing zone default region and network regions
 
 ```sh
 export DEFAULT_REGION="us-east1"
+```
+
+```sh
+export WORKLOAD_NETWORK_REGIONS="us-east1,us-east4,us-central1"
 ```
 
 For default landing zone region, select one of the following :

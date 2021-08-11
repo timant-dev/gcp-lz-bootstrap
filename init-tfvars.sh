@@ -8,13 +8,15 @@ export ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)')
 export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
 export LZ_GCS_REGION=${GCS_REGION}
 export LZ_DEFAULT_REGION=${DEFAULT_REGION}
+export WORKLOAD_ENV_SUBNET_REGIONS=${WORKLOAD_VPC_REGIONS}
 
 if [[ (-z "${CLIENT_SHORT_NAME}") || 
       (-z "${ORG_ID}") || 
       (-z "${ORG_DOMAIN}") ||       
       (-z "${BILL_ID}") || 
       (-z "${LZ_GCS_REGION}") || 
-      (-z "${LZ_DEFAULT_REGION}") ]]
+      (-z "${LZ_DEFAULT_REGION}") ||
+      (-z "${WORKLOAD_NETWORK_REGIONS}") ]]
 then
   echo "ERROR : One or more variables not populated"
   exit 1
@@ -27,6 +29,7 @@ billing_account_id = "${BILL_ID}"
 client_short_name = "${CLIENT_SHORT_NAME}"
 gcs_region = "${LZ_GCS_REGION}"
 default_region = "${LZ_DEFAULT_REGION}"
+workload_env_subnet_regions = "${WORKLOAD_NETWORK_REGIONS}"
 EOL
 
 if [ -f "${PWD}/terraform.tfvars" ]
