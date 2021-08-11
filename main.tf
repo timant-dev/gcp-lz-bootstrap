@@ -225,15 +225,21 @@ resource "google_artifact_registry_repository" "cb-registry" {
 
 # Grant read/write access to artefact registry to Terraform & Cloud Build service accounts
 
-resource "google_project_iam_binding" "cb-registry-read-write" {
+resource "google_project_iam_member" "tf-registry-read-write" {
   project = google_project.registry.project_id
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}",
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com",
-  ]
-  role = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.tf-sa.email}"
+  role    = "roles/artifactregistry.writer"
   depends_on = [
     google_artifact_registry_repository.cb-registry
+  ]
+}
+
+resource "google_project_iam_member" "cb-registry-read-write" {
+  project = google_project.registry.project_id
+  member  = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role    = "roles/artifactregistry.writer"
+  depends_on = [
+    google_project_iam_member.tf-registry-read-write
   ]
 }
 
