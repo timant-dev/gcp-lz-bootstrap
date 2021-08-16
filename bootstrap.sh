@@ -158,47 +158,56 @@ EOL
 
     printf "$(timestamp) [3-2]: Deploying the bootstrap infrastructure..." | tee -a $LOG_FILE_PATH
     set -e # Exit on error
-    terraform apply $TF_PLAN -auto-approve 2>&1 >> $LOG_FILE_PATH
+    terraform apply -auto-approve $TF_PLAN  2>&1 >> $LOG_FILE_PATH
     printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
 
     printf "$(timestamp) [3-3]: Review terraform output below: \n\n"
     terraform show output; sleep 1
 ;;
 
+4) # Update and migrate terraform state to GCS backend 
+set -e # Toggle to exit on error
+printf "\n>>>>>>>>>> RUNNING: STEP #4 - Update and migrate terraform state to GCS backend.\n\n" | tee -a $LOG_FILE_PATH
 
-4) # Update and migrate terraform state to GCS backend
-    
+
+terraform init -migrate-stateq
+
+;;
+
+5) # Generate github keys and configure git global 
     set -e # Toggle to exit on error
+    printf "\n>>>>>>>>>> RUNNING: STEP #5 - Generate github keys and configure git global.\n\n" | tee -a $LOG_FILE_PATH
 
-    BUCKET_NAME=$(terraform output -raw tf-state-bucket-name)
+    ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github
+    ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && cat ssh_config_template >~/.ssh/config
 
-    # echo "Updating Terraform GCS backend configuration with state bucket name..."
-    # export BUCKET_NAME=$(terraform output -raw tf-state-bucket-name)
-    # if [ -z "${BUCKET_NAME}" ]
-    # then
-    #     echo "ERROR : GCS bucket name not populated"
-    #     exit 1
-    # fi
-    # sed -i.bak -e "s/BUCKET_NAME_PLACEHOLDER/${BUCKET_NAME}/" ${PWD}/backend.tf.example
-    # mv ${PWD}/backend.tf.example ${PWD}/backend.tf
-    # if [ -f "${PWD}/backend.tf" ]
-    # then
-    #     echo "Generated backend.tf file with updated GCS bucket name"
-    #     cat ${PWD}/backend.tf
-    # else
-    #     echo "ERROR : backend.tf file not generated successfully"
-    #     exit 1
-    # fi
-    
-    printf "\n>>>>>>>>>> RUNNING: STEP #4 - Update and migrate terraform state to GCS backend.\n\n" | tee -a $LOG_FILE_PATH
-    printf "$(timestamp) [4-1]: Checking $TF_PLAN exists..." | tee -a $LOG_FILE_PATH
+    # Configure the cloudshell git session
+    git config --global user.email "${GITHUB_BOT_USER}" && git config --global user.name "${GITHUB_BOT_NAME}"
+    git config --global credential.https://source.developers.google.com.helper gcloud.sh
 
-    check_file_exists "${PWD}/$TF_PLAN" "2"
+    export WORKDIR=${PWD}
+;;
 
-    printf "$(timestamp) [4-2]: Deploying the bootstrap infrastructure..." | tee -a $LOG_FILE_PATH
-    set -e # Exit on error
-    terraform apply $TF_PLAN -auto-approve 2>&1 >> $LOG_FILE_PATH
-    printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
+6) # Clone the private GitHub repo and push into cloud source repo
+    set -e # Toggle to exit on error
+    printf "\n>>>>>>>>>> RUNNING: STEP #6 - Clone the private GitHub repo and push into cloud source repo.\n\n" | tee -a $LOG_FILE_PATH
+    export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
+    export SEED_PROJ=$(terraform output -raw seed_project_id)
+    export GITHUB_REPO_NAME=$(basename ${GITHUB_URL})
+    cd ${HOME} 
+    git clone ${GITHUB_SSH_URL}
+    cd ${HOME}/${GITHUB_REPO_NAME}
+    git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME}
+    git push --all google
+    git checkout --track remotes/origin/develop
+    git push google
+;;
+
+7) # Run terraform to add cloud build CI job triggers for next LZ phase
+    set -e # Toggle to exit on error
+    printf "\n>>>>>>>>>> RUNNING: STEP #7 - Run terraform to add cloud build CI job triggers for next LZ phase.\n\n" | tee -a $LOG_FILE_PATH
+    cd ${WORKDIR}
+    terraform apply -auto-approve -var="enable_cb_triggers=true"
 ;;
 
 esac
