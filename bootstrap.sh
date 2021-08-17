@@ -24,7 +24,7 @@ STEP_FAIL="FAIL!\n"
 
 # CHECKPOINTS ARE EMBEDDED IN STEPS AND INTENDED TO PROMPT USER TO PERFORM CHECKS.
 # YES = ENABLE; NO = DISABLE
-CHECKPOINT_ENABLED="YES"
+CHECKPOINT_ENABLED="NO"
 
 # REUSABLE FUNCTION TO PREFIX STDOUT MESSAGES/COMMENTS WITH TIMESTAMP
 function timestamp()
@@ -171,19 +171,18 @@ EOL
     #pause "[CHECKPOINT #3]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!!
 
 # >>>> STEP 4 - Update and migrate terraform state to GCS backend <<<<
-    printf "\n>>>>>>>>>> RUNNING: STEP #4.\n\n" | tee -a $LOG_FILE_PATH
-    
-    #export BUCKET_NAME=$(terraform output -raw tf-state-bucket-name)
-    export BUCKET_NAME="appdev-320214-terraform"
+    printf "\n>>>>>>>>>> RUNNING: STEP #4.\n\n" | tee -a $LOG_FILE_PATH    
     printf "$(timestamp) [4-1]: Updating terraform gcs backend conf with state bucket name..." | tee -a $LOG_FILE_PATH
+
+    export BUCKET_NAME=$(terraform output -raw tf-state-bucket-name)
     
-    # Check variable is populated with bucket name from terraform output
-    if [ -z "${BUCKET_NAME}" ]
+    if [ -z "${BUCKET_NAME}" ] # Check variable is populated with bucket name from terraform output
     then
         printf "$(timestamp) [ERROR]: GCS bucket name not populated.\n" | tee -a $LOG_FILE_PATH
         exit 1
     fi
 
+    # Preserve example file for templated use by copying it before replacing the embedded placeholder
     cp $WORKDIR/backend.tf.example $WORKDIR/backend.tf.stage
     sed -i "s/BUCKET_NAME_PLACEHOLDER/${BUCKET_NAME}/" $WORKDIR/backend.tf.stage
     mv $WORKDIR/backend.tf.stage $WORKDIR/backend.tf
@@ -211,7 +210,7 @@ EOL
     printf "$(timestamp) [5-1]: Generate keys to connect to private Github repo..." | tee -a $LOG_FILE_PATH
     ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github > /dev/null # command output is suppressed
     ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts > /dev/null
-    cat ssh_config_template > ~/.ssh/config # Check file exists!!!
+    cat ssh_config_template > ~/.ssh/config
     printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
 
     printf "$(timestamp) [5-2]: Configure the cloudshell git session (email, name and credential)..." | tee -a $LOG_FILE_PATH
