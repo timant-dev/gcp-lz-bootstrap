@@ -56,8 +56,12 @@ source $1 # Source config file
 printf $STEP_DONE; sleep 2
 
 printf "$(timestamp) [0-1]: Checking client log file exist ..."
+# Check if log directory exists, if not create it
+if [[ ! -d $LOG_DIR ]]; then
+    mkdir $LOG_DIR
+fi
+
 if [[ -f $LOG_FILE_PATH ]]; then
-    #printf "YES! - ${LOG_FILE_PATH}\n"
     printf "YES!\n"
 else
     printf "NO!\n"
@@ -125,8 +129,6 @@ EOL
 # >>>> STEP 2 - Initialize terraform, create workspace and plan <<<<<<<
     printf ">>>>>>>>>> RUNNING: STEP #2. \n\n" | tee -a $LOG_FILE_PATH
 
-    #check_file_exists "${PWD}/terraform.tfvars" "1"
-
     printf "$(timestamp) [2-1]: Initializing terraform..." | tee -a $LOG_FILE_PATH
     terraform init 2>&1 >> $LOG_FILE_PATH
     printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
@@ -157,7 +159,7 @@ EOL
 
     printf "$(timestamp) [2-5]: Instruction - Review the generated plan before deploying. Run 'terraform show bootstrap.tfplan'.\n"; sleep 2
 
-    #pause "[CHECKPOINT #2]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!!
+    pause "[CHECKPOINT #2]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!!
 
 # >>>> STEP 3 - Deploy bootstrap resources <<<<<<<
     printf "\n>>>>>>>>>> RUNNING: STEP #3.\n\n" | tee -a $LOG_FILE_PATH
@@ -168,7 +170,7 @@ EOL
 
     printf "$(timestamp) [3-2]: Instruction - Review terraform output by running 'terraform show output'.\n"; sleep 2
 
-    #pause "[CHECKPOINT #3]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!!
+    pause "[CHECKPOINT #3]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!!
 
 # >>>> STEP 4 - Update and migrate terraform state to GCS backend <<<<
     printf "\n>>>>>>>>>> RUNNING: STEP #4.\n\n" | tee -a $LOG_FILE_PATH    
