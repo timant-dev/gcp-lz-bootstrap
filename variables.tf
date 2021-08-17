@@ -158,7 +158,7 @@ variable "terraform_builder_shasum" {
 variable "terraform_validator_version" {
   type        = string
   description = "Terraform Validator binary version number"
-  default     = "v0.2.0"
+  default     = "v0.6.0"
 }
 
 variable "org_phase_repo_name" {
