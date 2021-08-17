@@ -8,11 +8,18 @@ if [ $# -lt 2 ]; then
   printf "Options: 
     arg1 = config file 
     arg2 = 1..7.
-        1 = Generate terraform.tfvar file
-        2 = Initialize terraform and generate plan"
+        1 = Generate terraform.tfvar file.
+        2 = Initialize terraform, create workspace and plan.
+        3 = Deploy bootstrap resources.
+        4 = Update and migrate terraform state to GCS backend.
+        5 = Generate github keys and configure git global.
+        6 = Clone the private GitHub repo and push into cloud source repo.
+        7 = Run terraform to add cloud build CI job triggers for next LZ phase.
+        \n"
   exit
 fi
 
+# Constant variables to report command execution outcome
 STEP_DONE="DONE!\n"
 STEP_SUCCESS="SUCCESS!\n"
 STEP_FAIL="FAIL!\n"
@@ -29,17 +36,17 @@ printf "$(timestamp) [0-0]: Sourcing environment variables from .conf file..."
 source $1 # Source config file
 printf $STEP_DONE; sleep 2
 
+
 printf "$(timestamp) [0-1]: Checking client log file exist ..."
-if [[ -f $LOG_FILE_PATH ]]
-then
-    printf "YES! - ${LOG_FILE_PATH}\n"
+if [[ -f $LOG_FILE_PATH ]]; then
+    #printf "YES! - ${LOG_FILE_PATH}\n"
+    printf "YES!\n"
 else
     printf "NO!\n"
     printf "$(timestamp) [0-2]: Creating log file..."
     touch $LOG_FILE_PATH
     printf "${LOG_FILE_PATH} created successfully!\n"
-fi
-sleep 2
+fi; sleep 2
 
 # Function to check file exists and prints outcome
 check_file_exists()
@@ -47,8 +54,7 @@ check_file_exists()
     local file="$1"
     local number="$2"
     
-    if [ -f $file ]
-    then
+    if [ -f $file ]; then
         printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH
     else
         printf $STEP_FAIL | tee -a $LOG_FILE_PATH
@@ -57,16 +63,9 @@ check_file_exists()
     fi
 }
 
-# code block #4 update and migrate backend
-
-# code block #5 gen and output ssh key
-
-# code block #6 clone github repo, push cloned repo into cloud source repo
-
-# code block #7 run terraform to add cloud build triggers
-
+# Switch statements based on second argument
 case $2 in
-1) # Generate terraform.tfvar file. Takes conf as input.
+1) # >>>> STEP 1 - Initialize env variables and generate terraform.tfvar file
     printf "\n>>>>>>>>>> RUNNING: STEP #1 - Intialize terraform variables and generate var file.\n\n" | tee -a $LOG_FILE_PATH
     printf "$(timestamp) [1-1]: Initialising terraform variables..." | tee -a $LOG_FILE_PATH
     if [[ (-z "${CLIENT_SHORT_NAME}") || 
@@ -104,27 +103,18 @@ EOL
     printf "\n\n"; sleep 1
 ;;
 
-2) # Initialize terraform
-
+2) # >>>> STEP 2 - Initialize terraform, create workspace and plan
     printf "\n>>>>>>>>>> RUNNING: STEP #2 - Initialize terraform, create workspace and plan.\n\n" | tee -a $LOG_FILE_PATH
     printf "$(timestamp) [2-1]: Checking terraform.tfvars file exists..." | tee -a $LOG_FILE_PATH
 
     check_file_exists "${PWD}/terraform.tfvars" "1"
-
-    # if [ -f "${PWD}/terraform.tfvars" ]
-    # then
-    # printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH
-    # else
-    # printf $STEP_FAIL | tee -a $LOG_FILE_PATH
-    # printf "$(timestamp) [ERROR]: Terraform.tfvars file is missing. Repeat step 1.\n" | tee -a $LOG_FILE_PATH
-    # exit 1
-    # fi
 
     printf "$(timestamp) [2-2]: Initializing terraform..." | tee -a $LOG_FILE_PATH
     terraform init 2>&1 >> $LOG_FILE_PATH
     printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
 
     printf "$(timestamp) [2-3]: Create new terraform workspace 'bootstrap'..." | tee -a $LOG_FILE_PATH
+    
     set +e # Skip warning message about existing workspace
     terraform workspace new bootstrap 1>&2 >> $LOG_FILE_PATH
     printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
@@ -146,11 +136,10 @@ EOL
     terraform plan -out=$TF_PLAN 2>&1 >> $LOG_FILE_PATH
     #printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH
 
-    printf "\nReview the generated plan before deploying. Run 'terraform show bootstrap.tfplan'.\n\n"
-    sleep 2
+    printf "\n[INSTRUCTION]: Review the generated plan before deploying by running 'terraform show bootstrap.tfplan'.\n\n"; sleep 2
 ;;
 
-3) # Deploy the bootstrap infrastructure
+3) # >>>> STEP 3 - Deploy bootstrap resources
     printf "\n>>>>>>>>>> RUNNING: STEP #3 - Deploy bootstrap resources.\n\n" | tee -a $LOG_FILE_PATH
     printf "$(timestamp) [3-1]: Checking $TF_PLAN exists..." | tee -a $LOG_FILE_PATH
 
@@ -165,30 +154,37 @@ EOL
     terraform show output; sleep 1
 ;;
 
-4) # Update and migrate terraform state to GCS backend 
-set -e # Toggle to exit on error
-printf "\n>>>>>>>>>> RUNNING: STEP #4 - Update and migrate terraform state to GCS backend.\n\n" | tee -a $LOG_FILE_PATH
+4) # >>>> STEP 4 - Update and migrate terraform state to GCS backend 
+    printf "\n>>>>>>>>>> RUNNING: STEP #4 - Update and migrate terraform state to GCS backend.\n\n" | tee -a $LOG_FILE_PATH
 
 
-terraform init -migrate-stateq
+    terraform init -migrate-state
 
 ;;
 
-5) # Generate github keys and configure git global 
-    set -e # Toggle to exit on error
+5) # >>>> STEP 5 - Generate github keys and configure git global 
     printf "\n>>>>>>>>>> RUNNING: STEP #5 - Generate github keys and configure git global.\n\n" | tee -a $LOG_FILE_PATH
 
-    ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github
-    ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts && cat ssh_config_template >~/.ssh/config
+    printf "$(timestamp) [5-1]: Generate keys to connect to private Github repo..." | tee -a $LOG_FILE_PATH
+    ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github # command output is suppressed
+    ssh-keyscan -t rsa github.com 2>&1 | tee ~/.ssh/known_hosts 
+    cat ssh_config_template > ~/.ssh/config # Check file exists!!!
+    printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
 
-    # Configure the cloudshell git session
-    git config --global user.email "${GITHUB_BOT_USER}" && git config --global user.name "${GITHUB_BOT_NAME}"
-    git config --global credential.https://source.developers.google.com.helper gcloud.sh
+    printf "$(timestamp) [5-2]: Configure the cloudshell git session (email, name and credential)..." | tee -a $LOG_FILE_PATH
+    git config --global user.email "${GITHUB_BOT_USER}" && git config --global user.name "${GITHUB_BOT_NAME}" 2>&1 >> $LOG_FILE_PATH
+    git config --global credential.https://source.developers.google.com.helper gcloud.sh 2>&1 >> $LOG_FILE_PATH
+    printf $STEP_SUCCESS | tee -a $LOG_FILE_PATH; sleep 1
 
-    export WORKDIR=${PWD}
+    printf "\n[INSTRUCTION]: 
+    Add the public SSH key as a deploy key on the Github repo.
+    Copy the generated public key and add it as a deploy key on the private Github repo.
+    See instructions here : $DEPLOY_KEY_DOC_LINK
+    Once you've added the deploy key to the Github repo, run step #6.\n\n"
+    sleep 2
 ;;
 
-6) # Clone the private GitHub repo and push into cloud source repo
+6) # >>>> STEP 6 - Clone the private GitHub repo and push into cloud source repo
     set -e # Toggle to exit on error
     printf "\n>>>>>>>>>> RUNNING: STEP #6 - Clone the private GitHub repo and push into cloud source repo.\n\n" | tee -a $LOG_FILE_PATH
     export GITHUB_SSH_URL=$(echo ${GITHUB_URL} | sed 's/https:\/\/github.com\//git\@github.com:/;s/$/.git/')
@@ -203,7 +199,7 @@ terraform init -migrate-stateq
     git push google
 ;;
 
-7) # Run terraform to add cloud build CI job triggers for next LZ phase
+7) # >>>> STEP 7 - Run terraform to add cloud build CI job triggers for next LZ phase
     set -e # Toggle to exit on error
     printf "\n>>>>>>>>>> RUNNING: STEP #7 - Run terraform to add cloud build CI job triggers for next LZ phase.\n\n" | tee -a $LOG_FILE_PATH
     cd ${WORKDIR}
