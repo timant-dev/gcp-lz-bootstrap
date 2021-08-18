@@ -286,7 +286,7 @@ resource "null_resource" "clone-terraform-builder-repo" {
 resource "null_resource" "build-terraform-builder-image" {
   provisioner "local-exec" {
     command = <<-EOT
-      gcloud builds submit $HOME/terraform-google-bootstrap/modules/cloudbuild/cloudbuild_builder \
+      gcloud builds submit $HOME/cloudshell_open/gcp-lz-bootstrap/cloudbuild-builder \
       --config $HOME/cloudshell_open/gcp-lz-bootstrap/cloudbuild-builder/cloudbuild.yaml \
       --substitutions _REPO_REGION=$REPO_REGION,_REPO_PROJECT=$REPO_PROJECT,_REPO_ID=$REPO_ID \
       --project $SEED_PROJ
