@@ -33,7 +33,7 @@ RUN apt-get update && \
     sha256sum -c terraform_SHA256SUMS --status && \
     unzip terraform_linux_amd64.zip -d /builder/terraform && \
     rm -f terraform_linux_amd64.zip && \
-    TERRAFORM_VALIDATOR_RELEASE_NUMBER=$(echo $ENV_TERRAFORM_VALIDATOR_RELEASE | sed -e 's/v//')
+    TERRAFORM_VALIDATOR_RELEASE_NUMBER=$(echo $ENV_TERRAFORM_VALIDATOR_RELEASE | sed -e 's/v//') && \
     gsutil cat gs://terraform-validator/releases/${ENV_TERRAFORM_VALIDATOR_RELEASE}/terraform-validator_linux_amd64-${TERRAFORM_VALIDATOR_RELEASE_NUMBER}.tar.gz | tar zxv -C /builder/terraform && \
     chmod +x /builder/terraform/terraform-validator && \
     apt-get --purge -y autoremove && \
