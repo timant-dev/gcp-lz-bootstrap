@@ -131,10 +131,25 @@ resource "google_organization_iam_member" "tf-sa-org-iam-roles" {
 
 resource "null_resource" "remove-domain-billing-creator-role" {
   provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/billing.creator"
+    # command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/billing.creator"
+    command = <<-EOT
+      export DOMAIN_ROLE=$(gcloud organizations get-iam-policy ${ORG_ID} \
+      --flatten='bindings[].members[]' \
+      --filter='bindings.members ~ ^domain AND bindings.role=${ROLE}' \
+      --format='value(bindings.role)')
+      if [[ "${DOMAIN_ROLE}" =~ "${ROLE}"]]
+      then
+        gcloud organizations remove-iam-policy-binding ${ORG_ID} \
+        --member="domain:${ORG_DOMAIN}" \
+        --role="${ROLE}"
+      else
+        echo "Billing Account Creator role not present on domain ${ORG_DOMAIN}. Skipping deletion of this role"
+      fi
+    EOT
     environment = {
       ORG_ID     = var.org_id
       ORG_DOMAIN = var.org_domain
+      ROLE       = "roles/billing.creator"
     }
   }
   depends_on = [
@@ -146,10 +161,25 @@ resource "null_resource" "remove-domain-billing-creator-role" {
 
 resource "null_resource" "remove-domain-project-creator-role" {
   provisioner "local-exec" {
-    command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/resourcemanager.projectCreator"
+    # command = "gcloud organizations remove-iam-policy-binding $ORG_ID --member=domain:$ORG_DOMAIN --role=roles/resourcemanager.projectCreator"
+    command = <<-EOT
+      export DOMAIN_ROLE=$(gcloud organizations get-iam-policy ${ORG_ID} \
+      --flatten='bindings[].members[]' \
+      --filter='bindings.members ~ ^domain AND bindings.role=${ROLE}' \
+      --format='value(bindings.role)')
+      if [[ "${DOMAIN_ROLE}" =~ "${ROLE}"]]
+      then
+        gcloud organizations remove-iam-policy-binding ${ORG_ID} \
+        --member="domain:${ORG_DOMAIN}" \
+        --role="${ROLE}"
+      else
+        echo "Project Creator role not present on domain ${ORG_DOMAIN}. Skipping deletion of this role"
+      fi
+    EOT
     environment = {
       ORG_ID     = var.org_id
       ORG_DOMAIN = var.org_domain
+      ROLE       = "roles/resourcemanager.projectCreator"
     }
   }
   depends_on = [
