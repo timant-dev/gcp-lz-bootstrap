@@ -325,6 +325,13 @@ function step6_clone_privategit_and_push_into_cloudrepo () {
 
     printout "$(timestamp) [6-2]: Cloning private GitHub repo...\n" 
     cd ${HOME}
+
+    # Remove repo directory if it already exists in order to ensure clone is latest repo version
+    if [[ -d ${HOME}/${GITHUB_REPO_NAME} ]]
+    then
+      printout "$(timestamp) [6-2]: Copy of cloned repo already exists locally. Will delete and clone latest version..."
+      rm -rf ${GITHUB_REPO_NAME}
+    fi
     git clone ${GITHUB_SSH_URL}; check_exit_code $?
 
     printout "$(timestamp) [6-3]: Add remote origin, checkout and push into cloud source repo..."  
