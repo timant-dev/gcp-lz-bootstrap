@@ -330,7 +330,10 @@ function step6_clone_privategit_and_push_into_cloudrepo () {
     printout "$(timestamp) [6-3]: Add remote origin, checkout and push into cloud source repo..."  
     cd ${HOME}/${GITHUB_REPO_NAME}
 
-    git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME} | tee -a $LOG_FILE_PATH >&3
+    # Get name of Cloud Source Repo from Terraform output as it may differ from cloned repo name
+    export TF_CSR_REPO_NAME=$(terraform output -raw tf_csr_repo_name)
+    printout "$(timestamp) [6-3]: Creating git remote for Cloud Source Repo name = ${TF_CSR_REPO_NAME}"
+    git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${TF_CSR_REPO_NAME} | tee -a $LOG_FILE_PATH >&3
     git push --all google | tee -a $LOG_FILE_PATH >&3
     git checkout --track remotes/origin/develop && git push google | tee -a $LOG_FILE_PATH >&3
     check_exit_code $?
