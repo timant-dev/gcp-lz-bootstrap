@@ -286,18 +286,16 @@ function step5_generate_sshkeys_and_configure_git () {
     printout "\n>>>>>>>>>> RUNNING: STEP #5.\n\n"
     printout "$(timestamp) [5-1]: Generate keys to connect to private Github repo..."
 
-    if [[ (-f "$HOME/.ssh/id_github") || (-f "$HOME/.ssh/known_hosts") ]]; then
-        printout $STEP_FAIL
-        printout "$(timestamp) [ERROR]: SSH keys already exists! Refer to directory $HOME/.ssh. \n\n"; sleep 1
-        exit 1
+    if [[ ! -f "$HOME/.ssh/id_github" ]]; then
+      # Generate keys if they don't exist
+      ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github > /dev/null # suppress output
+      ssh-keyscan -t rsa github.com | tee -a ~/.ssh/known_hosts > /dev/null # suppress output
+      check_exit_code $?
+      # Append SSH config template. NB : will create ~/.ssh/config if does not already exist
+      cat ssh_config_template >> ~/.ssh/config
+    elif
+      printout "$(timestamp) [5-1]: SSH keys already exist. Skipping creation of new keys" 
     fi
-
-    # Generate keys if they don't exist
-    ssh-keygen -t rsa -b 4096 -N "" -q -C "${GITHUB_BOT_USER}" -f ~/.ssh/id_github > /dev/null # suppress output
-    ssh-keyscan -t rsa github.com | tee ~/.ssh/known_hosts > /dev/null # suppress output
-    check_exit_code $?
-
-    cat ssh_config_template > ~/.ssh/config
 
     printout "$(timestamp) [5-2]: Configure the cloudshell git session (email, name and credential)..."
     git config --global user.email "${GITHUB_BOT_USER}"
