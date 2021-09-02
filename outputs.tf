@@ -17,3 +17,7 @@ output "tf_sa_email" {
 output "tf_sa_id" {
   value = google_service_account.tf-sa.id
 }
+
+output "tf_csr_repo_name" {
+  value = google_sourcerepo_repository.tf_lz_source.name
+}

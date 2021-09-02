@@ -238,7 +238,11 @@ cd ${HOME}/${GITHUB_REPO_NAME}
 ```
 
 ```sh
-git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${GITHUB_REPO_NAME}
+export TF_CSR_REPO_NAME=$(terraform output -raw tf_csr_repo_name)
+```
+
+```sh
+git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${TF_CSR_REPO_NAME}
 ```
 
 ```sh
