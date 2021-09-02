@@ -293,7 +293,7 @@ function step5_generate_sshkeys_and_configure_git () {
       check_exit_code $?
       # Append SSH config template. NB : will create ~/.ssh/config if does not already exist
       cat ssh_config_template >> ~/.ssh/config
-    elif
+    else
       printout "$(timestamp) [5-1]: SSH keys already exist. Skipping creation of new keys" 
     fi
 

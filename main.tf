@@ -282,7 +282,6 @@ resource "null_resource" "clone-terraform-builder-repo" {
     command     = "scripts/clone-external-git-repo.sh"
     interpreter = ["/bin/bash", "-c"]
     environment = {
-      WORKDIR  = "${HOME}"
       REPO_URL = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
     }
   }
@@ -324,7 +323,6 @@ resource "null_resource" "clone-policy-lib" {
     command     = "scripts/clone-external-git-repo.sh"
     interpreter = ["/bin/bash", "-c"]
     environment = {
-      WORKDIR  = "${HOME}"
       REPO_URL = "https://github.com/forseti-security/policy-library.git"
     }
   }
