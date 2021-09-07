@@ -225,3 +225,15 @@ variable "workload_env_subnet_regions" {
   type        = string
   description = "Comma delimited string listing region names for which subnets will be created in shared VPC host projects in workload environment folders"
 }
+
+variable "policy_lib_repo_url" {
+  type        = string
+  description = "Github URL for Forseti policy library repo"
+  default     = "https://github.com/forseti-security/policy-library.git"
+}
+
+variable "google_bootstrap_repo_url" {
+  type        = string
+  description = "Github URL for Google Terraform Bootstrap repo"
+  default     = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
+}

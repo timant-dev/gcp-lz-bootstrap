@@ -297,7 +297,7 @@ function step5_generate_sshkeys_and_configure_git () {
       printout "$(timestamp) [5-1]: SSH keys already exist. Skipping creation of new keys" 
     fi
 
-    printout "$(timestamp) [5-2]: Configure the cloudshell git session (email, name and credential)..."
+    printout "$(timestamp) [5-2]: Configure the cloudshell git session (email, name and credential)...\n"
     git config --global user.email "${GITHUB_BOT_USER}"
     git config --global user.name "${GITHUB_BOT_NAME}"
     git config --global credential.https://source.developers.google.com.helper gcloud.sh
@@ -331,7 +331,7 @@ function step6_clone_privategit_and_push_into_cloudrepo () {
       printout "$(timestamp) [6-2]: Copy of cloned repo already exists locally. Will delete and clone latest version..."
       rm -rf ${GITHUB_REPO_NAME}
     fi
-    git clone ${GITHUB_SSH_URL}; check_exit_code $?
+    git clone -b main ${GITHUB_SSH_URL}; check_exit_code $?
 
     printout "$(timestamp) [6-3]: Add remote origin, checkout and push into cloud source repo...\n"  
     cd ${HOME}/${GITHUB_REPO_NAME}
@@ -339,8 +339,9 @@ function step6_clone_privategit_and_push_into_cloudrepo () {
     # Get name of Cloud Source Repo from Terraform output as it may differ from cloned repo name
     printout "$(timestamp) [6-3]: Creating git remote for Cloud Source Repo name = ${TF_CSR_REPO_NAME}\n"
     git remote add google https://source.developers.google.com/p/${SEED_PROJ}/r/${TF_CSR_REPO_NAME} | tee -a $LOG_FILE_PATH >&3
+    git checkout main
     git push --all google | tee -a $LOG_FILE_PATH >&3
-    git checkout --track remotes/origin/develop && git push google | tee -a $LOG_FILE_PATH >&3
+    # git checkout --track remotes/origin/develop && git push google | tee -a $LOG_FILE_PATH >&3
     check_exit_code $?
     
     pause_script "[CHECKPOINT #1]: Do you want to continue? [Y/N]: " # CHECKPOINT!!!

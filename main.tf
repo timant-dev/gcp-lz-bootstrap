@@ -282,7 +282,7 @@ resource "null_resource" "clone-terraform-builder-repo" {
     command     = "scripts/clone-external-git-repo.sh"
     interpreter = ["/bin/bash", "-c"]
     environment = {
-      REPO_URL = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
+      REPO_URL = var.google_bootstrap_repo_url
     }
   }
   depends_on = [
@@ -323,7 +323,7 @@ resource "null_resource" "clone-policy-lib" {
     command     = "scripts/clone-external-git-repo.sh"
     interpreter = ["/bin/bash", "-c"]
     environment = {
-      REPO_URL = "https://github.com/forseti-security/policy-library.git"
+      REPO_URL = var.policy_lib_repo_url
     }
   }
   depends_on = [
