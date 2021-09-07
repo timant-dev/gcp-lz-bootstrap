@@ -164,7 +164,7 @@ variable "terraform_validator_version" {
 variable "org_phase_repo_name" {
   type        = string
   description = "Cloud Source Repository name for ORG phase repo"
-  default     = "gcp-lz-org"
+  default     = "landingzone-gcp"
 }
 
 variable "policy_lib_repo_name" {
@@ -224,4 +224,16 @@ variable "clone_tf_csr_repo_name" {
 variable "workload_env_subnet_regions" {
   type        = string
   description = "Comma delimited string listing region names for which subnets will be created in shared VPC host projects in workload environment folders"
+}
+
+variable "policy_lib_repo_url" {
+  type        = string
+  description = "Github URL for Forseti policy library repo"
+  default     = "https://github.com/forseti-security/policy-library.git"
+}
+
+variable "google_bootstrap_repo_url" {
+  type        = string
+  description = "Github URL for Google Terraform Bootstrap repo"
+  default     = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
 }

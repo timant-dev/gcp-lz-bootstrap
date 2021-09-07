@@ -17,8 +17,7 @@ FROM gcr.io/cloud-builders/gcloud-slim
 # Use ARG so that values can be overriden by user/cloudbuild
 ARG TERRAFORM_VERSION=1.0.1
 ARG TERRAFORM_VERSION_SHA256SUM=da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3
-ARG TERRAFORM_VALIDATOR_RELEASE=v0.6.0
-# ARG TERRAFORM_VALIDATOR_RELEASE_NUMBER=0.6.0
+ARG TERRAFORM_VALIDATOR_RELEASE=v0.7.0
 
 ENV ENV_TERRAFORM_VERSION=$TERRAFORM_VERSION
 ENV ENV_TERRAFORM_VERSION_SHA256SUM=$TERRAFORM_VERSION_SHA256SUM
@@ -33,8 +32,18 @@ RUN apt-get update && \
     sha256sum -c terraform_SHA256SUMS --status && \
     unzip terraform_linux_amd64.zip -d /builder/terraform && \
     rm -f terraform_linux_amd64.zip && \
-    TERRAFORM_VALIDATOR_RELEASE_NUMBER=$(echo $ENV_TERRAFORM_VALIDATOR_RELEASE | sed -e 's/v//') && \
-    gsutil cat gs://terraform-validator/releases/${ENV_TERRAFORM_VALIDATOR_RELEASE}/terraform-validator_linux_amd64-${TERRAFORM_VALIDATOR_RELEASE_NUMBER}.tar.gz | tar zxv -C /builder/terraform && \
+    VALIDATOR_RELEASE_VERSION=$(echo $ENV_TERRAFORM_VALIDATOR_RELEASE | sed -e 's/^v//') && \
+    VALIDATOR_RELEASE_NUMBER_AS_INT=$(echo $VALIDATOR_RELEASE_VERSION | sed -e 's/\.//g;s/^0//') && \
+    TARBALL_VERSION_THRESHOLD_AS_INT="60" && \
+    GCS_BASE_PATH="gs://terraform-validator/releases/${ENV_TERRAFORM_VALIDATOR_RELEASE}" && \
+    LEGACY_GCS_PATH="${GCS_BASE_PATH}/terraform-validator-linux-amd64" && \
+    CURRENT_GCS_PATH="${GCS_BASE_PATH}/terraform-validator_linux_amd64-${VALIDATOR_RELEASE_VERSION}.tar.gz" && \
+    if ( echo "$ENV_TERRAFORM_VALIDATOR_RELEASE" | grep -v '-' | grep -q '^v' ) && \
+    [ "$VALIDATOR_RELEASE_NUMBER_AS_INT" -ge "$TARBALL_VERSION_THRESHOLD_AS_INT" ]; then \
+      echo "Terraform Validator recent version >= v0.6.0 : zipped tarball"; gsutil cat ${CURRENT_GCS_PATH} | tar zxv -C /builder/terraform; \
+    else \
+      echo "Terraform Validator legacy version < v0.6.0"; gsutil cp ${LEGACY_GCS_PATH} /builder/terraform/terraform-validator; \
+    fi && \
     chmod +x /builder/terraform/terraform-validator && \
     apt-get --purge -y autoremove && \
     apt-get clean && \

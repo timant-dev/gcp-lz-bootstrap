@@ -279,7 +279,11 @@ resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write"
 
 resource "null_resource" "clone-terraform-builder-repo" {
   provisioner "local-exec" {
-    command = "cd $HOME && git clone https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
+    command     = "scripts/clone-external-git-repo.sh"
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      REPO_URL = var.google_bootstrap_repo_url
+    }
   }
   depends_on = [
     google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
@@ -316,7 +320,11 @@ resource "null_resource" "build-terraform-builder-image" {
 
 resource "null_resource" "clone-policy-lib" {
   provisioner "local-exec" {
-    command = "cd $HOME && git clone https://github.com/forseti-security/policy-library.git"
+    command     = "scripts/clone-external-git-repo.sh"
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      REPO_URL = var.policy_lib_repo_url
+    }
   }
   depends_on = [
     null_resource.build-terraform-builder-image
