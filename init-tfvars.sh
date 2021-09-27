@@ -8,7 +8,6 @@ export ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)')
 export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
 export LZ_GCS_REGION=${GCS_REGION}
 export LZ_DEFAULT_REGION=${DEFAULT_REGION}
-export WORKLOAD_ENV_SUBNET_REGIONS=${WORKLOAD_VPC_REGIONS}
 
 if [[ (-z "${CLIENT_SHORT_NAME}") || 
       (-z "${ORG_ID}") || 
