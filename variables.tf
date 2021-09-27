@@ -135,6 +135,7 @@ variable "tf_iam_project_roles" {
   default = [
     "roles/cloudbuild.builds.editor",
     "roles/secretmanager.secretVersionManager",
+    "roles/iam.serviceAccountAdmin",
   ]
 }
 
