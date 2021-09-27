@@ -202,6 +202,8 @@ function step2_create_terraform_workspace_and_plan () {
         terraform workspace new $TF_WORKSPACE | tee -a $LOG_FILE_PATH >&3
         check_exit_code $?
     else
+        printout "Terraform workspace ${TF_WORKSPACE} already exists. Switching to it now..."
+        terraform workspace select $TF_WORKSPACE | tee -a $LOG_FILE_PATH >&3
         printout $STEP_SUCCESS; sleep 1
     fi
 
