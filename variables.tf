@@ -111,6 +111,7 @@ variable "tf_iam_org_roles" {
   default = [
     "roles/billing.user",
     "roles/cloudbuild.builds.editor",
+    "roles/iam.organizationRoleAdmin",
     "roles/resourcemanager.folderAdmin",
     "roles/orgpolicy.policyAdmin",
     "roles/resourcemanager.organizationAdmin",
@@ -134,6 +135,7 @@ variable "tf_iam_project_roles" {
   default = [
     "roles/cloudbuild.builds.editor",
     "roles/secretmanager.secretVersionManager",
+    "roles/iam.serviceAccountAdmin",
   ]
 }
 
