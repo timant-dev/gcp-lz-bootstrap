@@ -105,11 +105,18 @@ variable "registry_enabled_apis" {
   ]
 }
 
+variable "tf_iam_ba_roles" {
+  type        = list(string)
+  description = "List of billing account IAM roles to assign to Terraform service account"
+  default = [
+    "roles/billing.admin"
+  ]
+}
+
 variable "tf_iam_org_roles" {
   type        = list(string)
   description = "List of org level IAM roles to assign to Terraform service account"
   default = [
-    "roles/billing.user",
     "roles/cloudbuild.builds.editor",
     "roles/iam.organizationRoleAdmin",
     "roles/resourcemanager.folderAdmin",
