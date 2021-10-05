@@ -127,6 +127,15 @@ resource "google_organization_iam_member" "tf-sa-org-iam-roles" {
   ]
 }
 
+# Apply IAM roles for the Terraform service account to the billing account
+
+resource "google_billing_account_iam_member" "tf-sa-ba-iam-roles" {
+  for_each           = length(var.tf_iam_ba_roles) == 0 ? [] : toset(var.tf_iam_ba_roles)
+  billing_account_id = var.billing_account_id
+  role               = each.value
+  member             = "serviceAccount:${google_service_account.tf-sa.email}"
+}
+
 # Remove default Billing Account Creator role from the domain if present
 
 resource "null_resource" "remove-domain-billing-creator-role" {
