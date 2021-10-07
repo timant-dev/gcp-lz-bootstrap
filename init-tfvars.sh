@@ -3,9 +3,9 @@ set -e
 
 echo "Generating Terraform tfvars file..."
 export CLIENT_SHORT_NAME=${CLIENT_NAME}
-export ORG_ID=$(gcloud organizations list --format='value(ID)')
-export ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)')
-export BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
+export ORG_ID=${ORG_ID}
+export ORG_DOMAIN=${ORG_DOMAIN}
+export BILL_ID=${BILL_ID}
 export LZ_GCS_REGION=${GCS_REGION}
 export LZ_DEFAULT_REGION=${DEFAULT_REGION}
 
