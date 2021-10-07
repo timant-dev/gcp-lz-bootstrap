@@ -144,15 +144,11 @@ function step1_generate_terraform_tfvars () {
     # Function to generate terraform.tfvars file from mandatory variables set locally and provided in conf file.
     
     # Global variables
-    ORG_ID=$(gcloud organizations list --format='value(ID)') 
-    ORG_DOMAIN=$(gcloud organizations list --format='value(displayName)') 
-    BILL_ID=$(gcloud alpha billing accounts list --format='value(ACCOUNT_ID)' --filter='OPEN=True')
-    
     printout "\n>>>>>>>>>> RUNNING: STEP #1.\n\n"
     printout "$(timestamp) [1-1]: Initialising terraform variables..."
-    if [[ (-z "${ORG_ID}") || 
-        (-z "${ORG_DOMAIN}") ||       
-        (-z "${BILL_ID}") || 
+    if [[ (-z "${ORG_ID}") ||                   # From config file
+        (-z "${ORG_DOMAIN}") ||                 # From config file
+        (-z "${BILL_ID}") ||                    # From config file
         (-z "${CLIENT_SHORT_NAME}") ||          # From config file
         (-z "${GCS_REGION}") ||                 # From config file
         (-z "${DEFAULT_REGION}") ||             # From config file
