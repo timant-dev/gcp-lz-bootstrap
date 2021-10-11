@@ -78,7 +78,7 @@ resource "google_storage_bucket" "tf-seed-state-bucket" {
   project                     = google_project.seed.project_id
   name                        = local.tf_state_bucket_name
   location                    = var.gcs_region
-  force_destroy               = true
+  force_destroy               = var.state_force_destroy
   uniform_bucket_level_access = true
   versioning {
     enabled = true
@@ -412,6 +412,7 @@ resource "google_cloudbuild_trigger" "plan-org-phase" {
     _REPO_ID                  = var.artefact_registry_repo_id
     _REPO_PROJECT             = local.registry_project_unique_id
     _REPO_REGION              = var.default_region
+    _STATE_FORCE_DESTROY      = false
     _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _TF_CSR_REPO_NAME         = var.org_phase_repo_name
     _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
@@ -445,6 +446,7 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
     _REPO_ID                  = var.artefact_registry_repo_id
     _REPO_PROJECT             = local.registry_project_unique_id
     _REPO_REGION              = var.default_region
+    _STATE_FORCE_DESTROY      = false
     _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _TF_CSR_REPO_NAME         = var.org_phase_repo_name
     _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
@@ -478,6 +480,7 @@ resource "google_cloudbuild_trigger" "destroy-org-phase" {
     _REPO_ID                  = var.artefact_registry_repo_id
     _REPO_PROJECT             = local.registry_project_unique_id
     _REPO_REGION              = var.default_region
+    _STATE_FORCE_DESTROY      = false
     _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
     _TF_CSR_REPO_NAME         = var.org_phase_repo_name
     _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"

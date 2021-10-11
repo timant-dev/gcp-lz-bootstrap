@@ -1,11 +1,8 @@
-variable "org_id" {
-  type        = string
-  description = "Organisation ID"
-}
+# Required Variables
 
-variable "org_domain" {
+variable "billing_account_id" {
   type        = string
-  description = "Organisation domain name"
+  description = "Billing account ID"
 }
 
 variable "client_short_name" {
@@ -13,9 +10,9 @@ variable "client_short_name" {
   description = "Short name for client to be used as prefix for git repo branches"
 }
 
-variable "billing_account_id" {
+variable "default_region" {
   type        = string
-  description = "Billing account ID"
+  description = "Default region for landing resources"
 }
 
 variable "gcs_region" {
@@ -23,31 +20,38 @@ variable "gcs_region" {
   description = "Region for GCS bucket for Terraform state"
 }
 
-variable "default_region" {
+variable "org_domain" {
   type        = string
-  description = "Default region for landing resources"
+  description = "Organisation domain name"
 }
 
-variable "parent_folder_name" {
-  type    = string
-  default = "bootstrap"
+variable "org_id" {
+  type        = string
+  description = "Organisation ID"
+}
+
+variable "workload_env_subnet_regions" {
+  type        = string
+  description = "Comma delimited string listing region names for which subnets will be created in shared VPC host projects in workload environment folders"
+}
+
+# Optional Variables
+
+variable "apply_org_cb_job_config" {
+  type        = string
+  description = "Cloud Build config file name for org apply job"
+  default     = "cloudbuild-tf-apply-lz-org.yaml"
+}
+
+variable "apply_trigger_branch_suffix" {
+  type        = string
+  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
+  default     = "lz-apply"
 }
 
 variable "artefacts_folder_name" {
   type    = string
   default = "artefacts"
-}
-
-variable "root_envs_folder_name" {
-  type        = string
-  description = "Root environment folder for production, non-production and development workload environments"
-  default     = "envs"
-}
-
-variable "seed_project_id" {
-  type        = string
-  description = "Project ID for seed project"
-  default     = "seed"
 }
 
 variable "artefact_project_id" {
@@ -56,10 +60,10 @@ variable "artefact_project_id" {
   default     = "artefact-registry"
 }
 
-variable "tf_state_bucket_name" {
+variable "artefact_registry_repo_id" {
   type        = string
-  description = "GCS bucket name for Terraform state"
-  default     = "lz-tf-state-seed"
+  description = "Artefact Registry repo name"
+  default     = "artefact-repo"
 }
 
 variable "cb_artefacts_bucket_name" {
@@ -68,10 +72,28 @@ variable "cb_artefacts_bucket_name" {
   default     = "lz-cb-artefacts-seed"
 }
 
-variable "tf_sa_name" {
+variable "clone_tf_csr_repo_name" {
   type        = string
-  description = "Service account name for LZ foundation provisioning"
-  default     = "terraform-core"
+  description = "Name for cloned Terraform CSR repo in Cloud Build builder workspace"
+  default     = "gcp_lz_org_clone"
+}
+
+variable "destroy_org_cb_job_config" {
+  type        = string
+  description = "Cloud Build config file name for org destroy job"
+  default     = "cloudbuild-tf-destroy-lz-org.yaml"
+}
+
+variable "destroy_trigger_branch_suffix" {
+  type        = string
+  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to destroy org resources"
+  default     = "lz-destroy"
+}
+
+variable "enable_cb_triggers" {
+  type        = bool
+  description = "Toggle to enable the provisioning of Cloud Build triggers"
+  default     = false
 }
 
 variable "enabled_apis" {
@@ -96,6 +118,47 @@ variable "enabled_apis" {
   ]
 }
 
+variable "google_bootstrap_repo_url" {
+  type        = string
+  description = "Github URL for Google Terraform Bootstrap repo"
+  default     = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
+}
+
+variable "org_phase_repo_name" {
+  type        = string
+  description = "Cloud Source Repository name for ORG phase repo"
+  default     = "landingzone-gcp"
+}
+
+variable "parent_folder_name" {
+  type    = string
+  default = "bootstrap"
+}
+
+variable "plan_org_cb_job_config" {
+  type        = string
+  description = "Cloud Build config file name for org plan job"
+  default     = "cloudbuild-tf-plan-lz-org.yaml"
+}
+
+variable "plan_trigger_branch_suffix" {
+  type        = string
+  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to deploy org resources"
+  default     = "lz-plan"
+}
+
+variable "policy_lib_repo_name" {
+  type        = string
+  description = "Cloud Source Repository name for OPA policy library repo"
+  default     = "policy-lib"
+}
+
+variable "policy_lib_repo_url" {
+  type        = string
+  description = "Github URL for Forseti policy library repo"
+  default     = "https://github.com/forseti-security/policy-library.git"
+}
+
 variable "registry_enabled_apis" {
   type        = list(string)
   description = "List of APIs to enable in registry project"
@@ -105,12 +168,36 @@ variable "registry_enabled_apis" {
   ]
 }
 
+variable "root_envs_folder_name" {
+  type        = string
+  description = "Root environment folder for production, non-production and development workload environments"
+  default     = "envs"
+}
+
+variable "seed_project_id" {
+  type        = string
+  description = "Project ID for seed project"
+  default     = "seed"
+}
+
+variable "state_force_destroy" {
+  type        = bool
+  description = "Ensures all state bucket contents are deleted on destroy"
+  default     = false
+}
+
 variable "tf_iam_ba_roles" {
   type        = list(string)
   description = "List of billing account IAM roles to assign to Terraform service account"
   default = [
     "roles/billing.admin"
   ]
+}
+
+variable "tf_iam_folder_roles" {
+  type        = list(string)
+  description = "List of folder level IAM roles to assign to Terraform service account"
+  default     = []
 }
 
 variable "tf_iam_org_roles" {
@@ -130,12 +217,6 @@ variable "tf_iam_org_roles" {
   ]
 }
 
-variable "tf_iam_folder_roles" {
-  type        = list(string)
-  description = "List of folder level IAM roles to assign to Terraform service account"
-  default     = []
-}
-
 variable "tf_iam_project_roles" {
   type        = list(string)
   description = "List of project level IAM roles to assign to Terraform service account"
@@ -146,10 +227,10 @@ variable "tf_iam_project_roles" {
   ]
 }
 
-variable "artefact_registry_repo_id" {
+variable "terraform_builder_shasum" {
   type        = string
-  description = "Artefact Registry repo name"
-  default     = "artefact-repo"
+  description = "Terraform version SHA sum to use in Cloud Build Terraform builder image"
+  default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
 }
 
 variable "terraform_builder_version" {
@@ -158,91 +239,20 @@ variable "terraform_builder_version" {
   default     = "1.0.1"
 }
 
-variable "terraform_builder_shasum" {
-  type        = string
-  description = "Terraform version SHA sum to use in Cloud Build Terraform builder image"
-  default     = "da94657593636c8d35a96e4041136435ff58bb0061245b7d0f82db4a7728cef3"
-}
-
 variable "terraform_validator_version" {
   type        = string
   description = "Terraform Validator binary version number"
-  default     = "v0.6.0"
+  default     = "v0.7.0"
 }
 
-variable "org_phase_repo_name" {
+variable "tf_sa_name" {
   type        = string
-  description = "Cloud Source Repository name for ORG phase repo"
-  default     = "landingzone-gcp"
+  description = "Service account name for LZ foundation provisioning"
+  default     = "terraform-core"
 }
 
-variable "policy_lib_repo_name" {
+variable "tf_state_bucket_name" {
   type        = string
-  description = "Cloud Source Repository name for OPA policy library repo"
-  default     = "policy-lib"
-}
-
-variable "enable_cb_triggers" {
-  type        = bool
-  description = "Toggle to enable the provisioning of Cloud Build triggers"
-  default     = false
-}
-
-variable "plan_trigger_branch_suffix" {
-  type        = string
-  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to deploy org resources"
-  default     = "lz-plan"
-}
-
-variable "apply_trigger_branch_suffix" {
-  type        = string
-  description = "Org phase Cloud Source Repository branch name to trigger Cloud Build job to deploy org resources"
-  default     = "lz-apply"
-}
-
-variable "destroy_trigger_branch_suffix" {
-  type        = string
-  description = "Cloud Source Repository branch name suffix to trigger Cloud Build job to destroy org resources"
-  default     = "lz-destroy"
-}
-
-variable "plan_org_cb_job_config" {
-  type        = string
-  description = "Cloud Build config file name for org plan job"
-  default     = "cloudbuild-tf-plan-lz-org.yaml"
-}
-
-variable "apply_org_cb_job_config" {
-  type        = string
-  description = "Cloud Build config file name for org apply job"
-  default     = "cloudbuild-tf-apply-lz-org.yaml"
-}
-
-variable "destroy_org_cb_job_config" {
-  type        = string
-  description = "Cloud Build config file name for org destroy job"
-  default     = "cloudbuild-tf-destroy-lz-org.yaml"
-}
-
-variable "clone_tf_csr_repo_name" {
-  type        = string
-  description = "Name for cloned Terraform CSR repo in Cloud Build builder workspace"
-  default     = "gcp_lz_org_clone"
-}
-
-variable "workload_env_subnet_regions" {
-  type        = string
-  description = "Comma delimited string listing region names for which subnets will be created in shared VPC host projects in workload environment folders"
-}
-
-variable "policy_lib_repo_url" {
-  type        = string
-  description = "Github URL for Forseti policy library repo"
-  default     = "https://github.com/forseti-security/policy-library.git"
-}
-
-variable "google_bootstrap_repo_url" {
-  type        = string
-  description = "Github URL for Google Terraform Bootstrap repo"
-  default     = "https://github.com/terraform-google-modules/terraform-google-bootstrap.git"
+  description = "GCS bucket name for Terraform state"
+  default     = "lz-tf-state-seed"
 }
