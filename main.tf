@@ -188,13 +188,21 @@ resource "google_project_iam_member" "tf-sa-seed-project-iam-roles" {
 # This is required so Cloud Build can successfully initialise the Terraform backend before
 # running the remaining Terraform deployment via service account impersonation
 
-resource "google_storage_bucket_iam_binding" "sa-gcs-object-admin" {
+resource "google_storage_bucket_iam_member" "sa-gcs-object-admin-tf-sa" {
   bucket = google_storage_bucket.tf-seed-state-bucket.id
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}",
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.tf-sa.email}"
+
+  depends_on = [
+    google_service_account.tf-sa
   ]
-  role = "roles/storage.objectAdmin"
+}
+
+resource "google_storage_bucket_iam_member" "sa-gcs-object-admin-cb-sa" {
+  bucket = google_storage_bucket.tf-seed-state-bucket.id
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+
   depends_on = [
     google_service_account.tf-sa
   ]
@@ -213,13 +221,21 @@ resource "google_service_account_iam_member" "cb-impersonate-tf-sa" {
 
 # Grant access to GCS bucket storing Cloud Build logs and outputs to Terraform & Cloud Build service accounts
 
-resource "google_storage_bucket_iam_binding" "sa-artefacts-gcs-object-admin" {
+resource "google_storage_bucket_iam_member" "sa-artefacts-gcs-object-admin-tf-sa" {
   bucket = google_storage_bucket.cloud-build-logs-artefacts.id
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}",
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.tf-sa.email}"
+
+  depends_on = [
+    google_storage_bucket.cloud-build-logs-artefacts
   ]
-  role = "roles/storage.objectAdmin"
+}
+
+resource "google_storage_bucket_iam_member" "sa-artefacts-gcs-object-admin-cb-sa" {
+  bucket = google_storage_bucket.cloud-build-logs-artefacts.id
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+
   depends_on = [
     google_storage_bucket.cloud-build-logs-artefacts
   ]
@@ -240,21 +256,29 @@ resource "google_artifact_registry_repository" "cb-registry" {
 
 # Grant read/write access to artefact registry to Terraform & Cloud Build service accounts
 
-resource "google_project_iam_member" "tf-registry-read-write" {
-  project = google_project.registry.project_id
-  member  = "serviceAccount:${google_service_account.tf-sa.email}"
-  role    = "roles/artifactregistry.writer"
+resource "google_artifact_registry_repository_iam_member" "artefact_registry_admin_tf_sa" {
+  provider   = google-beta
+  project    = google_project.registry.project_id
+  location   = var.default_region
+  repository = var.artefact_registry_repo_id
+  role       = "roles/artifactregistry.admin"
+  member     = "serviceAccount:${google_service_account.tf-sa.email}"
+
   depends_on = [
     google_artifact_registry_repository.cb-registry
   ]
 }
 
-resource "google_project_iam_member" "cb-registry-read-write" {
-  project = google_project.registry.project_id
-  member  = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
-  role    = "roles/artifactregistry.writer"
+resource "google_artifact_registry_repository_iam_member" "artefact_registry_read_write_cb_sa" {
+  provider   = google-beta
+  project    = google_project.registry.project_id
+  location   = var.default_region
+  repository = var.artefact_registry_repo_id
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+
   depends_on = [
-    google_project_iam_member.tf-registry-read-write
+    google_artifact_registry_repository.cb-registry
   ]
 }
 
@@ -271,14 +295,23 @@ resource "google_sourcerepo_repository" "policy-lib-repo" {
 
 # Grant read/write access to the policy lib repo to Terraform & Cloud Build service accounts
 
-resource "google_sourcerepo_repository_iam_binding" "policy-lib-repo-read-write" {
+resource "google_sourcerepo_repository_iam_member" "policy-lib-repo-read-write-tf-sa" {
   project    = google_project.registry.project_id
   repository = google_sourcerepo_repository.policy-lib-repo.name
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}",
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role       = "roles/source.writer"
+  member     = "serviceAccount:${google_service_account.tf-sa.email}"
+
+  depends_on = [
+    google_sourcerepo_repository.policy-lib-repo
   ]
-  role = "roles/source.writer"
+}
+
+resource "google_sourcerepo_repository_iam_member" "policy-lib-repo-read-write-cb-sa" {
+  project    = google_project.registry.project_id
+  repository = google_sourcerepo_repository.policy-lib-repo.name
+  role       = "roles/source.writer"
+  member     = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+
   depends_on = [
     google_sourcerepo_repository.policy-lib-repo
   ]
@@ -295,7 +328,8 @@ resource "null_resource" "clone-terraform-builder-repo" {
     }
   }
   depends_on = [
-    google_sourcerepo_repository_iam_binding.policy-lib-repo-read-write
+    google_sourcerepo_repository_iam_member.policy-lib-repo-read-write-cb-sa,
+    google_sourcerepo_repository_iam_member.policy-lib-repo-read-write-tf-sa
   ]
 }
 
@@ -367,14 +401,23 @@ resource "google_sourcerepo_repository" "tf_lz_source" {
 
 # Grant read/write access to the Terraform source repo to Terraform & Cloud Build service accounts
 
-resource "google_sourcerepo_repository_iam_binding" "tf_lz_source_read_write" {
+resource "google_sourcerepo_repository_iam_member" "tf_lz_source_read_write_tf_sa" {
   project    = google_project.seed.project_id
   repository = google_sourcerepo_repository.tf_lz_source.name
-  members = [
-    "serviceAccount:${google_service_account.tf-sa.email}",
-    "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+  role       = "roles/source.writer"
+  member     = "serviceAccount:${google_service_account.tf-sa.email}"
+
+  depends_on = [
+    google_sourcerepo_repository.tf_lz_source
   ]
-  role = "roles/source.writer"
+}
+
+resource "google_sourcerepo_repository_iam_member" "tf_lz_source_read_write_cb_sa" {
+  project    = google_project.seed.project_id
+  repository = google_sourcerepo_repository.tf_lz_source.name
+  role       = "roles/source.writer"
+  member     = "serviceAccount:${google_project.seed.number}@cloudbuild.gserviceaccount.com"
+
   depends_on = [
     google_sourcerepo_repository.tf_lz_source
   ]
