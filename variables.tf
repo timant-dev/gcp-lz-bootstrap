@@ -110,6 +110,7 @@ variable "enabled_apis" {
     "iamcredentials.googleapis.com",
     "orgpolicy.googleapis.com",
     "secretmanager.googleapis.com",
+    "servicenetworking.googleapis.com",
     "serviceusage.googleapis.com",
     "sourcerepo.googleapis.com",
     "storage-api.googleapis.com",
