@@ -501,37 +501,3 @@ resource "google_cloudbuild_trigger" "apply-org-phase" {
     google_cloudbuild_trigger.plan-org-phase
   ]
 }
-
-# Conditionally create Cloud Build trigger to destroy the core landing zone ORG deployment
-
-resource "google_cloudbuild_trigger" "destroy-org-phase" {
-  count = var.enable_cb_triggers ? 1 : 0
-  name  = "lz-org-terraform-destroy"
-  trigger_template {
-    repo_name   = var.org_phase_repo_name
-    branch_name = local.destroy_branch_name
-  }
-  project = google_project.seed.project_id
-  substitutions = {
-    _BILL_ID                  = var.billing_account_id
-    _BRANCH_BASE_NAME         = var.client_short_name
-    _CB_ARTEFACT_BUCKET       = "${google_storage_bucket.cloud-build-logs-artefacts.id}"
-    _CLONE_TF_REPO_NAME       = var.clone_tf_csr_repo_name
-    _ENABLE_CB_TRIGGERS       = true
-    _GCS_REGION               = var.gcs_region
-    _ORG_ID                   = var.org_id
-    _REPO_ID                  = var.artefact_registry_repo_id
-    _REPO_PROJECT             = local.registry_project_unique_id
-    _REPO_REGION              = var.default_region
-    _STATE_FORCE_DESTROY      = false
-    _TF_BUCKET                = "${google_storage_bucket.tf-seed-state-bucket.id}"
-    _TF_CSR_REPO_NAME         = var.org_phase_repo_name
-    _TF_CSR_REPO_PROJ         = "${google_project.seed.project_id}"
-    _TF_SA                    = "${google_service_account.tf-sa.email}"
-    _WORKLOAD_NETWORK_REGIONS = var.workload_env_subnet_regions
-  }
-  filename = var.destroy_org_cb_job_config
-  depends_on = [
-    google_cloudbuild_trigger.apply-org-phase
-  ]
-}
